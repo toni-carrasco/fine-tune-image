@@ -14,12 +14,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
       accelerate \
       peft
 
-COPY train.py .
+COPY lora.py .
 
-# Ensure GPU is visible (modern Docker)
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
-# Run
-CMD ["python", "train.py"]
-
+CMD ["python", "lora.py"]
