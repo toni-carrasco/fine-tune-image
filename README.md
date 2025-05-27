@@ -32,13 +32,8 @@ Este repositorio contiene un script para entrenar y ejecutar adaptadores LoRA so
 
 ### **1\. Construir la imagen**
 
-make build
+`make build`
 
-Esto ejecuta:
-
-docker build \-t finetune-image .
-
-y construye la imagen **finetune-image**.
 
 ### **2\. Ejecutar el contenedor**
 
