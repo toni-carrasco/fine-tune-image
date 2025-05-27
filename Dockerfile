@@ -19,4 +19,4 @@ COPY lora.py .
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
-CMD ["python", "lora.py"]
+ENTRYPOINT ["python", "lora.py"]

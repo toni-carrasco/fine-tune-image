@@ -3,33 +3,39 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model, PeftModel
 from datasets import load_dataset
+import sys
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Train and run LoRA adapters on GPT-2 or LLaMA-7B'
+        description='Train and run LoRA adapters on GPT-2 o LLaMA-7B'
     )
+    # Lo dejamos como opcional para poder interceptar el caso 'None'
     parser.add_argument(
         'model',
-        nargs='?',  # optional positional to allow manual check
+        nargs='?',
         choices=['gpt-2', 'llama-7b'],
-        help='Model to use: gpt-2 or llama-7b'
+        help='Model to use: gpt-2 o llama-7b'
     )
     parser.add_argument(
-        '--input', type=str, default='Explain the significance of the industrial revolution.',
+        '--input', type=str,
+        default='Explain the significance of the industrial revolution.',
         help='Inference input text'
     )
-    return parser.parse_args()
+
+    args = parser.parse_args()
+
+    # Comprueba manualmente que model esté presente
+    if args.model is None:
+        print('Error: Debe especificar el modelo: gpt-2 o llama-7b', file=sys.stderr)
+        sys.exit(1)
+
+    return args
 
 
 def main():
     args = parse_args()
 
-    # Force model parameter
-    if not args.model:
-        print('Error: Debe especificar el modelo: gpt-2 o llama-7b', file=sys.stderr)
-        sys.exit(1)
-    
     print("Versión de torch:", torch.__version__)
     print("Versión de CUDA en torch:", torch.version.cuda)
     print("CUDA disponible:", torch.cuda.is_available())
