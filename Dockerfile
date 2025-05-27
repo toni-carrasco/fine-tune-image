@@ -1,24 +1,25 @@
-FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
-# Definir directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos de requerimientos (si existen)
-# COPY requirements.txt ./
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+      torch==2.1.0+cu118 \
+      torchvision==0.16.0+cu118 \
+      torchaudio==2.1.0+cu118 \
+      --extra-index-url https://download.pytorch.org/whl/cu118 && \
+    pip install --no-cache-dir \
+      transformers \
+      datasets \
+      accelerate \
+      peft
 
-# Actualizar pip e instalar dependencias necesarias
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir \
-       transformers>=4.30.0 \
-       datasets \
-       accelerate \
-       peft \
-       bitsandbytes \
-       huggingface_hub
+COPY lora.py .
 
-# Copiar el código de entrenamiento al contenedor
-COPY train.py /app/train.py
+# Ensure GPU is visible (modern Docker)
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
-# Definir el comando por defecto para lanzar el script de entrenamiento
-# Asumimos que tienes un train.py que implementa el fine-tuning con LoRA
-CMD ["python", "train.py"]
+# Run
+CMD ["python", "lora.py"]
+
