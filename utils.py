@@ -1,7 +1,7 @@
 import argparse
 import os
 import sys
-import torch
+import torch, torchvision
 from types import SimpleNamespace
 from typing import Dict, Tuple, Any
 
@@ -37,12 +37,15 @@ def parse_args():
         print('Error: Debe especificar el peft (lora o qlora)', file=sys.stderr)
         sys.exit(1)
 
+    print("==================================================")
+    print("Versión de torch vision:", torchvision.__version__)
     print("Versión de torch:", torch.__version__)
     print("Versión de CUDA en torch:", torch.version.cuda)
     print("CUDA disponible:", torch.cuda.is_available())
     print("Número de GPUs detectadas:", torch.cuda.device_count())
     print("LLM Model:", args.model)
     print("PEFT Mode:", args.peft)
+    print("==================================================")
 
     return args
 
