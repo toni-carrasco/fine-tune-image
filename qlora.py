@@ -2,7 +2,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, PeftModel
 from datasets import load_dataset
-from utils import parse_args, load_env_vars
+from utils import parse_args, load_env_vars, get_model_config
 
 
 def main():

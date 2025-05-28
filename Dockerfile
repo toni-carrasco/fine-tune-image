@@ -23,9 +23,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
       protobuf \
       bitsandbytes
 
-COPY lora.py .
+COPY qlora.py .
+COPY utils.py .
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
-ENTRYPOINT ["python", "lora.py"]
+ENTRYPOINT ["python", "qlora.py"]
