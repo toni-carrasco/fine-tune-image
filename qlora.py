@@ -97,7 +97,6 @@ def main():
     peft_model.save_pretrained(adapter_dir)
 
     # Inference
-    # QLoRA + LoRA
     base = AutoModelForCausalLM.from_pretrained(
         hf_name,
         device_map='auto',

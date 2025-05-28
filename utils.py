@@ -7,13 +7,19 @@ from typing import Dict, Tuple, Any
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Entrenamiento usando QLoRA adapters sobre GPT-2 o LLaMA-7B'
+        description='Entrenamiento usando QLoRA o LoRA adapters sobre GPT-2 o LLaMA-7B'
     )
     parser.add_argument(
-        'model',
-        nargs='?',
+        '--model',
+        required=True,
         choices=['gpt-2', 'llama-7b'],
-        help='Modelo a usar: gpt-2 o llama-7b'
+        help='Modelo a usar: gpt-2 o llama-7b (obligatorio)'
+    )
+    parser.add_argument(
+        '--peft',
+        required=True,
+        choices=['lora', 'qlora'],
+        help='Tipo de adapter PEFT a usar: lora o qlora (obligatorio)'
     )
     parser.add_argument(
         '--input', type=str,
@@ -22,15 +28,21 @@ def parse_args():
     )
 
     args = parser.parse_args()
+
     if args.model is None:
         print('Error: Debe especificar el modelo (gpt-2 o llama-7b)', file=sys.stderr)
         sys.exit(1)
-    else:
-        print("Versión de torch:", torch.__version__)
-        print("Versión de CUDA en torch:", torch.version.cuda)
-        print("CUDA disponible:", torch.cuda.is_available())
-        print("Número de GPUs detectadas:", torch.cuda.device_count())
-        print("LLM Model:", args.model)
+
+    if args.peft is None:
+        print('Error: Debe especificar el peft (lora o qlora)', file=sys.stderr)
+        sys.exit(1)
+
+    print("Versión de torch:", torch.__version__)
+    print("Versión de CUDA en torch:", torch.version.cuda)
+    print("CUDA disponible:", torch.cuda.is_available())
+    print("Número de GPUs detectadas:", torch.cuda.device_count())
+    print("LLM Model:", args.model)
+    print("PEFT Mode:", args.peft)
 
     return args
 
@@ -56,20 +68,22 @@ def load_env_vars() -> SimpleNamespace:
     return SimpleNamespace(**loaded)
 
 
-def get_model_config(model: str) -> SimpleNamespace:
-    if model == 'gpt-2':
-        return SimpleNamespace(
-            hf_name='gpt2',
-            target_modules=['c_attn'],
-            output_dir='./gpt2-qlora-results',
-            adapter_dir='./gpt2-qlora-adapters',
-            use_fast_tokenizer=True
-        )
+def get_model_config(model: str, peft: str) -> SimpleNamespace:
+    if model_name == 'gpt-2':
+        hf_name = 'gpt2'
+        target_modules = ['c_attn']
+        use_fast_tokenizer = True
+    elif model_name == 'llama-7b':
+        hf_name = 'meta-llama/Llama-2-7b-hf'
+        target_modules = ['q_proj', 'v_proj']
+        use_fast_tokenizer = False
     else:
-        return SimpleNamespace(
-            hf_name='meta-llama/Llama-2-7b-hf',
-            target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj'],
-            output_dir='./llama7b-qlora-results',
-            adapter_dir='./llama7b-qlora-adapters',
-            use_fast_tokenizer=False
-        )
+        raise ValueError(f'Modelo no soportado: {model_name}')
+
+    return {
+        'hf_name': hf_name,
+        'target_modules': target_modules,
+        'output_dir': f'./{model_name}-{peft}-results',
+        'adapter_dir': f'./{model_name}-{peft}-adapters',
+        'use_fast_tokenizer': use_fast_tokenizer
+    }
