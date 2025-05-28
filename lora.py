@@ -1,16 +1,17 @@
 import argparse
+import os
+import sys
 import torch
+from types import SimpleNamespace
+from typing import Dict, Tuple, Any
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model, PeftModel
 from datasets import load_dataset
-import sys
-
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Train and run LoRA adapters on GPT-2 o LLaMA-7B'
     )
-    # Lo dejamos como opcional para poder interceptar el caso 'None'
     parser.add_argument(
         'model',
         nargs='?',
@@ -33,13 +34,44 @@ def parse_args():
     return args
 
 
+def load_env_vars(specs: Dict[str, Tuple[str, Any, bool]]) -> SimpleNamespace:
+    loaded = {}
+    missing = []
+
+    for local_name, (env_name, default, mandatory) in specs.items():
+        value = os.getenv(env_name, default)
+        if mandatory and (value is None or value == ""):
+            missing.append(env_name)
+        loaded[local_name] = value
+
+    if missing:
+        sys.stderr.write(
+            "Error: faltan las siguientes variables de entorno obligatorias:\n"
+            + "\n".join(f"  - {name}" for name in missing)
+            + "\n"
+        )
+        sys.exit(1)
+
+    return SimpleNamespace(**loaded)
+
+
 def main():
     args = parse_args()
+
+    specs = {
+        "hf_token":   ("HUGGINGFACE_TOKEN", None,      True),
+        "debug_mode": ("DEBUG_MODE", "false",          False),
+    }
+
+    env = load_env_vars(specs)
+    hf_token   = env.hf_token
+    debug_mode = env.debug_mode.lower() in ("1", "true", "yes")
 
     print("Versión de torch:", torch.__version__)
     print("Versión de CUDA en torch:", torch.version.cuda)
     print("CUDA disponible:", torch.cuda.is_available())
     print("Número de GPUs detectadas:", torch.cuda.device_count())
+    print("LLM Model:", args.model)
 
     # Model-specific settings
     if args.model == 'gpt-2':
@@ -58,7 +90,11 @@ def main():
         use_fast_tokenizer = False
 
     # Tokenizer & Model
-    tokenizer = AutoTokenizer.from_pretrained(hf_name, use_fast=use_fast_tokenizer)
+    tokenizer = AutoTokenizer.from_pretrained(
+        hf_name,
+        use_fast=use_fast_tokenizer,
+        use_auth_token=hf_token
+    )
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.pad_token_id = tokenizer.eos_token_id
 
@@ -66,7 +102,8 @@ def main():
         hf_name,
         device_map='auto',
         torch_dtype=torch.float16,
-        load_in_8bit=load_in_8bit
+        load_in_8bit=load_in_8bit,
+        use_auth_token=hf_token
     )
 
     # LoRA config
@@ -125,7 +162,8 @@ def main():
         hf_name,
         device_map='auto',
         torch_dtype=torch.float16,
-        load_in_8bit=load_in_8bit
+        load_in_8bit=load_in_8bit,
+        use_auth_token=hf_token
     )
     loaded = PeftModel.from_pretrained(base, adapter_dir)
 
