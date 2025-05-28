@@ -92,24 +92,27 @@ def get_model_config(model_name: str, peft: str) -> SimpleNamespace:
             use_fast_tokenizer=use_fast_tokenizer
         )
 
-def load_model(model_name, hf_token):
+def load_model(model_name, hf_token, quantization_config = None):
+    model_kwargs = {
+        "device_map": "auto"
+    }
+
+    if quantization_config is not None:
+        model_kwargs["quantization_config"] = quantization_config
+
     if model_name == 'gpt-2':
-        return AutoModelForCausalLM.from_pretrained(
-            'gpt2',
-            device_map="auto"
-        )
+        return AutoModelForCausalLM.from_pretrained('gpt2', **model_kwargs)
+
     elif model_name == 'llama-7b':
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16
-        )
-        return AutoModelForCausalLM.from_pretrained(
-            'meta-llama/Llama-2-7b-hf',
-            quantization_config=bnb_config,
-            device_map="auto",
-            token=hf_token
-        )
+        model_kwargs["token"] = hf_token
+        if quantization_config is None:
+            model_kwargs["quantization_config"] = BitsAndBytesConfig(
+                                                              load_in_4bit=True,
+                                                              bnb_4bit_use_double_quant=True,
+                                                              bnb_4bit_quant_type="nf4",
+                                                              bnb_4bit_compute_dtype=torch.bfloat16
+                                                          )
+        return AutoModelForCausalLM.from_pretrained('meta-llama/Llama-2-7b-hf', **model_kwargs)
+
     else:
         raise ValueError(f'Modelo no soportado: {model_name}')

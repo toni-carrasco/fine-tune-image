@@ -17,6 +17,19 @@ def get_lora_peft_model(model_name, hf_token, target_modules):
     return get_peft_model(model, lora_config)
 
 
+def get_qlora_peft_model(model_name, hf_token, target_modules, bnb_config):
+    model = load_model(model_name, hf_token, bnb_config)
+    lora_config = LoraConfig(
+        r=4,
+        lora_alpha=8,
+        lora_dropout=0.2,
+        target_modules=target_modules,
+        bias='none',
+        task_type='CAUSAL_LM'
+    )
+    return get_peft_model(model, lora_config)
+
+
 def main():
     args = parse_args()
 
@@ -40,7 +53,18 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    peft_model = get_lora_peft_model(args.model, hf_token, target_modules)
+    if args.peft == "lora":
+        peft_model = get_lora_peft_model(args.model, hf_token, target_modules)
+    elif args.peft == "qlora":
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type='nf4',
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_compute_dtype=torch.float16
+        )
+        peft_model = get_qlora_peft_model(args.model, hf_token, target_modules, bnb_config)
+    else:
+        raise ValueError(f"Modo PEFT no soportado: {args.peft}")
 
     # Dataset
     dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
@@ -84,7 +108,10 @@ def main():
     peft_model.save_pretrained(adapter_dir)
 
     # Inference
-    base = load_model(args.model, hf_token)
+    if args.peft == "lora":
+        base = load_model(args.model, hf_token)
+    elif args.peft == "qlora":
+        base = load_model(args.model, hf_token, bnb_config)
     loaded = PeftModel.from_pretrained(base, adapter_dir)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
