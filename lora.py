@@ -5,8 +5,8 @@ from datasets import load_dataset
 from utils import parse_args, load_env_vars, get_model_config, load_model
 
 
-def get_lora_peft_model(hf_name, hf_token, target_modules):
-    model = load_model(hf_name, hf_token)
+def get_lora_peft_model(model_name, hf_token, target_modules):
+    model = load_model(model_name, hf_token)
     lora_config = LoraConfig(
         r=4,
         lora_alpha=8,
@@ -40,7 +40,7 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    peft_model = get_lora_peft_model(hf_name, hf_token, target_modules)
+    peft_model = get_lora_peft_model(args.model, hf_token, target_modules)
 
     # Dataset
     dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
@@ -84,7 +84,7 @@ def main():
     peft_model.save_pretrained(adapter_dir)
 
     # Inference
-    base = load_model(hf_name, hf_token)
+    base = load_model(args.model, hf_token)
     loaded = PeftModel.from_pretrained(base, adapter_dir)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

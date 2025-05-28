@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import torch, torchvision
+from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from types import SimpleNamespace
 from typing import Dict, Tuple, Any
 
@@ -88,16 +89,14 @@ def get_model_config(model_name: str, peft: str) -> SimpleNamespace:
             target_modules=target_modules,
             output_dir=f'./{model_name}-{peft}-results',
             adapter_dir=f'./{model_name}-{peft}-adapters',
-            use_fast_tokenizer=use_fast_tokenizer,
-            load_in_8bit=load_in_8bit
+            use_fast_tokenizer=use_fast_tokenizer
         )
 
-def load_model(model_name: string, hf_token:string):
+def load_model(model_name, hf_token):
     if model_name == 'gpt-2':
         return AutoModelForCausalLM.from_pretrained(
-            model_name,
-            device_map="auto",
-            token=hf_token
+            'gpt2',
+            device_map="auto"
         )
     elif model_name == 'llama-7b':
         bnb_config = BitsAndBytesConfig(
@@ -107,7 +106,7 @@ def load_model(model_name: string, hf_token:string):
             bnb_4bit_compute_dtype=torch.bfloat16
         )
         return AutoModelForCausalLM.from_pretrained(
-            model_name,
+            'meta-llama/Llama-2-7b-hf',
             quantization_config=bnb_config,
             device_map="auto",
             token=hf_token
