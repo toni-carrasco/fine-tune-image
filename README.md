@@ -56,7 +56,7 @@ export HUGGINGFACE_TOKEN=<tu_token_HF>
 
 * **Dockerfile**: Define la imagen base con dependencias (transformers, peft, etc.).
 
-* **lora.py**: Aplica LoRA .... (TODO)
+* **lora.py**: Implementación en python para aplicar LoRA (Low-Rank Adaptation) en modelos LLM.
 
 * **Makefile**: Simplifica la construcción de la imagen y la ejecución del contenedor.
 
