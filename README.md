@@ -2,9 +2,20 @@
 
 Este repositorio proporciona una **imagen Docker** preconfigurada con todas las dependencias necesarias para aplicar técnicas de **PEFT** (Parameter-Efficient Fine-Tuning) sobre modelos de lenguaje de última generación. El objetivo principal es facilitar un entorno reproducible y listo para usar, donde puedas experimentar y desplegar entrenamientos eficientes sin preocuparte por la instalación manual de librerías.
 
-### Técnicas PEFT soportadas
+## Técnicas PEFT soportadas
+### **LoRA** (Low-Rank Adaptation)
 
-- **LoRA** (Low-Rank Adaptation)  
+**LoRA** introduce matrices entrenables de bajo rango paralelas a las capas lineales del modelo.
+Durante el entrenamiento, se actualizan únicamente estas matrices, mientras que los pesos del modelo base
+permanecen congelados, reduciendo significativamente el consumo de recursos durante el entrenamiento.
+
+![image](docs/img/lora_figure.png)
+- **Low-Rank Adaptation of Large Language Models**  
+  Edward Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang & Weizhu Chen. _arXiv preprint arXiv:2106.09685_ (2021).  
+  🔗 [https://arxiv.org/abs/2106.09685](https://arxiv.org/abs/2106.09685)
+- Codigo de entrenamiento en python: **[lora.py](lora.py)**
+
+### TODO
 - **QLoRA** (Quantized LoRA)  
 - **BitFit**  
 - **Prefix Tuning v2**  
@@ -39,6 +50,8 @@ Este repositorio proporciona una **imagen Docker** preconfigurada con todas las 
 export HUGGINGFACE_TOKEN=<tu_token_HF>
 ```
 
+---
+
 ## **Estructura**
 
 * **Dockerfile**: Define la imagen base con dependencias (transformers, peft, etc.).
@@ -68,4 +81,3 @@ Para entrenar/ejecutar dentro del contenedor, debes proporcionar dos variables:
 ```
 make run PEFT=lora MODEL=gpt-2
 ```
-
