@@ -1,93 +1,23 @@
-import argparse
-import os
-import sys
 import torch
-from types import SimpleNamespace
-from typing import Dict, Tuple, Any
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, PeftModel
 from datasets import load_dataset
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description='Train and run LoRA adapters on GPT-2 o LLaMA-7B'
-    )
-    parser.add_argument(
-        'model',
-        nargs='?',
-        choices=['gpt-2', 'llama-7b'],
-        help='Model to use: gpt-2 o llama-7b'
-    )
-    parser.add_argument(
-        '--input', type=str,
-        default='Explain the significance of the industrial revolution.',
-        help='Inference input text'
-    )
-
-    args = parser.parse_args()
-
-    # Comprueba manualmente que model esté presente
-    if args.model is None:
-        print('Error: Debe especificar el modelo: gpt-2 o llama-7b', file=sys.stderr)
-        sys.exit(1)
-
-    return args
-
-
-def load_env_vars(specs: Dict[str, Tuple[str, Any, bool]]) -> SimpleNamespace:
-    loaded = {}
-    missing = []
-
-    for local_name, (env_name, default, mandatory) in specs.items():
-        value = os.getenv(env_name, default)
-        if mandatory and (value is None or value == ""):
-            missing.append(env_name)
-        loaded[local_name] = value
-
-    if missing:
-        sys.stderr.write(
-            "Error: faltan las siguientes variables de entorno obligatorias:\n"
-            + "\n".join(f"  - {name}" for name in missing)
-            + "\n"
-        )
-        sys.exit(1)
-
-    return SimpleNamespace(**loaded)
+from utils import parse_args, load_env_vars
 
 
 def main():
     args = parse_args()
 
-    specs = {
-        "hf_token":   ("HUGGINGFACE_TOKEN", None,      True),
-        "debug_mode": ("DEBUG_MODE", "false",          False),
-    }
-
-    env = load_env_vars(specs)
+    env = load_env_vars()
     hf_token = env.hf_token
-    debug_mode = env.debug_mode.lower() in ("1", "true", "yes")
+    debug_mode = env.debug_mode.lower() in ('1', 'true', 'yes')
 
-    print("Versión de torch:", torch.__version__)
-    print("Versión de CUDA en torch:", torch.version.cuda)
-    print("CUDA disponible:", torch.cuda.is_available())
-    print("Número de GPUs detectadas:", torch.cuda.device_count())
-    print("LLM Model:", args.model)
-
-    # Model-specific settings
-    if args.model == 'gpt-2':
-        hf_name = 'gpt2'
-        lora_targets = ['c_attn']
-        load_in_8bit = False
-        output_dir = './gpt2-lora-results'
-        adapter_dir = './gpt2-lora-adapters'
-        use_fast_tokenizer = True
-    else:
-        hf_name = 'meta-llama/Llama-2-7b-hf'
-        lora_targets = ['q_proj', 'k_proj', 'v_proj', 'o_proj']
-        load_in_8bit = True
-        output_dir = './llama7b-lora-results'
-        adapter_dir = './llama7b-lora-adapters'
-        use_fast_tokenizer = False
+    config = get_model_config(args.model)
+    hf_name = config.hf_name
+    target_modules = config.target_modules
+    output_dir = config.output_dir
+    adapter_dir = config.adapter_dir
+    use_fast_tokenizer = config.use_fast_tokenizer
 
     # Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(
@@ -98,11 +28,19 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.pad_token_id = tokenizer.eos_token_id
 
+    # Configuración QLoRA (4-bit)
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type='nf4',
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_compute_dtype=torch.float16
+    )
+
     model = AutoModelForCausalLM.from_pretrained(
         hf_name,
+        quantization_config=bnb_config,
         device_map='auto',
         torch_dtype=torch.float16,
-        load_in_8bit=load_in_8bit,
         use_auth_token=hf_token
     )
 
@@ -111,7 +49,9 @@ def main():
         r=4,
         lora_alpha=8,
         lora_dropout=0.2,
-        target_modules=lora_targets
+        target_modules=target_modules,
+        bias='none',
+        task_type='CAUSAL_LM'
     )
     peft_model = get_peft_model(model, lora_config)
 
@@ -157,13 +97,13 @@ def main():
     peft_model.save_pretrained(adapter_dir)
 
     # Inference
-    # Load base + adapters
+    # QLoRA + LoRA
     base = AutoModelForCausalLM.from_pretrained(
         hf_name,
         device_map='auto',
         torch_dtype=torch.float16,
         use_auth_token=hf_token,
-        load_in_8bit=load_in_8bit
+        quantization_config=bnb_config,
     )
     loaded = PeftModel.from_pretrained(base, adapter_dir)
 
