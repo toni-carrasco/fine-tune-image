@@ -66,6 +66,6 @@ Para entrenar/ejecutar dentro del contenedor, debes proporcionar dos variables:
 * `MODEL`: modelo a usar (`gpt-2` o `llama-7b`).
 
 ```
-make run PEFT=lora MODEL=gpt-2`
+make run PEFT=lora MODEL=gpt-2
 ```
 
