@@ -5,24 +5,21 @@ Este repositorio contiene un script para entrenar y ejecutar adaptadores LoRA so
 ## **Prerrequisitos**
 
 * Docker instalado y configurado para usar GPUs (NVIDIA Docker).
+    * [Installing the NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+    * [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 
-* (Opcional) Token de Hugging Face para acceder a repositorios con acceso restringido:
 
- `export HUGGINGFACE_TOKEN=<tu_token_HF>`
+* Token de Hugging Face para acceder a repositorios con acceso restringido:
 
-* Make (opcional, pero recomendado para simplificar comandos).
+```
+export HUGGINGFACE_TOKEN=<tu_token_HF>
+```
 
 ## **Estructura**
 
 * **Dockerfile**: Define la imagen base con dependencias (transformers, peft, etc.).
 
-* **lora.py**: Script principal que:
-
-  1. Carga el modelo (`gpt-2` o `llama-7b`).
-
-  2. Configura y entrena adaptadores LoRA.
-
-  3. Guarda y recarga adaptadores para generación.
+* **lora.py**: Aplica LoRA .... (TODO)
 
 * **Makefile**: Simplifica la construcción de la imagen y la ejecución del contenedor.
 
@@ -32,17 +29,17 @@ Este repositorio contiene un script para entrenar y ejecutar adaptadores LoRA so
 
 ### **1\. Construir la imagen**
 
-`make build`
-
+```
+make build`
+```
 
 ### **2\. Ejecutar el contenedor**
 
 Para entrenar/ejecutar dentro del contenedor, debes proporcionar dos variables:
 
-* `PEFT`: tecnica peft a aplicar sobre el modelo que se quiere hacer fine-tunning.
+* `PEFT`: tecnica peft a aplicar (`lora`,`qlora`, ...)
 
 * `MODEL`: modelo a usar (`gpt-2` o `llama-7b`).
 
 `make run PEFT=lora MODEL=gpt-2`
-
 
