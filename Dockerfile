@@ -8,6 +8,8 @@ RUN apt-get update && \
       libgoogle-perftools-dev && \
     rm -rf /var/lib/apt/lists/*
 
+
+
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
       torch==2.1.0+cu118 \
@@ -23,10 +25,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
       protobuf \
       bitsandbytes
 
-COPY qlora.py .
+COPY lora.py .
 COPY utils.py .
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
-ENTRYPOINT ["python", "qlora.py"]
+ENTRYPOINT ["python", "lora.py"]

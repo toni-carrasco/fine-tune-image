@@ -4,28 +4,23 @@ from peft import LoraConfig, get_peft_model, PeftModel
 from datasets import load_dataset
 from utils import parse_args, load_env_vars, get_model_config
 
-def get_lora_peft_model(hf_name, ht_token, target_modules):
-    model = AutoModelForCausalLM.from_pretrained(
-        hf_name,
-        device_map='auto',
-        torch_dtype=torch.float16,
-        load_in_8bit=load_in_8bit,
-        use_auth_token=hf_token
-    )
+def get_lora_peft_model(hf_name, hf_token, target_modules, load_in_8bit):
+    model = get_lora_inference_model(hf_name, hf_token, load_in_8bit)
     lora_config = LoraConfig(
         r=4,
         lora_alpha=8,
         lora_dropout=0.2,
-        target_modules=target_modules
+        target_modules=target_modules,
+        fan_in_fan_out=True
     )
     return get_peft_model(model, lora_config)
 
-def get_lora_inference_model(hf_name, hf_token):
+def get_lora_inference_model(hf_name, hf_token, load_in_8bit):
     return AutoModelForCausalLM.from_pretrained(
             hf_name,
             device_map='auto',
             torch_dtype=torch.float16,
-            use_auth_token=hf_token,
+            token=hf_token,
             load_in_8bit=load_in_8bit
         )
 
@@ -36,23 +31,24 @@ def main():
     hf_token = env.hf_token
     debug_mode = env.debug_mode.lower() in ('1', 'true', 'yes')
 
-    config = get_model_config(args.model)
+    config = get_model_config(args.model, args.peft)
     hf_name = config.hf_name
     target_modules = config.target_modules
     output_dir = config.output_dir
     adapter_dir = config.adapter_dir
     use_fast_tokenizer = config.use_fast_tokenizer
+    load_in_8bit = config.load_in_8bit
 
     # Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(
         hf_name,
         use_fast=use_fast_tokenizer,
-        use_auth_token=hf_token
+        token=hf_token
     )
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    peft_model = get_lora_peft_model(hf_name, ht_token, target_modules)
+    peft_model = get_lora_peft_model(hf_name, hf_token, target_modules, load_in_8bit)
 
     # Dataset
     dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
@@ -96,7 +92,7 @@ def main():
     peft_model.save_pretrained(adapter_dir)
 
     # Inference
-    base = get_lora_inference_model(hf_name, hf_token)
+    base = get_lora_inference_model(hf_name, hf_token, load_in_8bit)
     loaded = PeftModel.from_pretrained(base, adapter_dir)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

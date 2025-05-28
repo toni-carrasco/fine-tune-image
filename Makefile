@@ -19,5 +19,5 @@ run:
 		exit 1; \
 	fi
 	@echo "Running container finetune-image with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
-	docker run -e HUGGINGFACE_TOKEN --gpus all --rm finetune-image $(MODEL)
+	docker run -e HUGGINGFACE_TOKEN --gpus all --rm finetune-image --model $(MODEL) --peft $(PEFT)
 

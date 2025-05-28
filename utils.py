@@ -68,22 +68,25 @@ def load_env_vars() -> SimpleNamespace:
     return SimpleNamespace(**loaded)
 
 
-def get_model_config(model: str, peft: str) -> SimpleNamespace:
+def get_model_config(model_name: str, peft: str) -> SimpleNamespace:
     if model_name == 'gpt-2':
         hf_name = 'gpt2'
         target_modules = ['c_attn']
         use_fast_tokenizer = True
+        load_in_8bit = False
     elif model_name == 'llama-7b':
         hf_name = 'meta-llama/Llama-2-7b-hf'
-        target_modules = ['q_proj', 'v_proj']
+        target_modules = ['q_proj', 'k_proj', 'v_proj', 'o_proj']
         use_fast_tokenizer = False
+        load_in_8bit = True
     else:
         raise ValueError(f'Modelo no soportado: {model_name}')
 
-    return {
-        'hf_name': hf_name,
-        'target_modules': target_modules,
-        'output_dir': f'./{model_name}-{peft}-results',
-        'adapter_dir': f'./{model_name}-{peft}-adapters',
-        'use_fast_tokenizer': use_fast_tokenizer
-    }
+    return SimpleNamespace(
+            hf_name=hf_name,
+            target_modules=target_modules,
+            output_dir=f'./{model_name}-{peft}-results',
+            adapter_dir=f'./{model_name}-{peft}-adapters',
+            use_fast_tokenizer=use_fast_tokenizer,
+            load_in_8bit=load_in_8bit
+        )
