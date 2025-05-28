@@ -76,12 +76,10 @@ def get_model_config(model_name: str, peft: str) -> SimpleNamespace:
         hf_name = 'gpt2'
         target_modules = ['c_attn']
         use_fast_tokenizer = True
-        load_in_8bit = False
     elif model_name == 'llama-7b':
         hf_name = 'meta-llama/Llama-2-7b-hf'
         target_modules = ['q_proj', 'k_proj', 'v_proj', 'o_proj']
         use_fast_tokenizer = False
-        load_in_8bit = True
     else:
         raise ValueError(f'Modelo no soportado: {model_name}')
 
@@ -93,3 +91,26 @@ def get_model_config(model_name: str, peft: str) -> SimpleNamespace:
             use_fast_tokenizer=use_fast_tokenizer,
             load_in_8bit=load_in_8bit
         )
+
+def load_model(model_name: string, hf_token:string):
+    if model_name == 'gpt-2':
+        return AutoModelForCausalLM.from_pretrained(
+            model_name,
+            device_map="auto",
+            token=hf_token
+        )
+    elif model_name == 'llama-7b':
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16
+        )
+        return AutoModelForCausalLM.from_pretrained(
+            model_name,
+            quantization_config=bnb_config,
+            device_map="auto",
+            token=hf_token
+        )
+    else:
+        raise ValueError(f'Modelo no soportado: {model_name}')

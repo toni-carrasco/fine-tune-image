@@ -1,11 +1,12 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, PeftModel
 from datasets import load_dataset
-from utils import parse_args, load_env_vars, get_model_config
+from utils import parse_args, load_env_vars, get_model_config, load_model
 
-def get_lora_peft_model(hf_name, hf_token, target_modules, load_in_8bit):
-    model = get_lora_inference_model(hf_name, hf_token, load_in_8bit)
+
+def get_lora_peft_model(hf_name, hf_token, target_modules):
+    model = load_model(hf_name, hf_token)
     lora_config = LoraConfig(
         r=4,
         lora_alpha=8,
@@ -15,14 +16,6 @@ def get_lora_peft_model(hf_name, hf_token, target_modules, load_in_8bit):
     )
     return get_peft_model(model, lora_config)
 
-def get_lora_inference_model(hf_name, hf_token, load_in_8bit):
-    return AutoModelForCausalLM.from_pretrained(
-            hf_name,
-            device_map='auto',
-            torch_dtype=torch.float16,
-            token=hf_token,
-            load_in_8bit=load_in_8bit
-        )
 
 def main():
     args = parse_args()
@@ -37,7 +30,6 @@ def main():
     output_dir = config.output_dir
     adapter_dir = config.adapter_dir
     use_fast_tokenizer = config.use_fast_tokenizer
-    load_in_8bit = config.load_in_8bit
 
     # Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(
@@ -48,7 +40,7 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    peft_model = get_lora_peft_model(hf_name, hf_token, target_modules, load_in_8bit)
+    peft_model = get_lora_peft_model(hf_name, hf_token, target_modules)
 
     # Dataset
     dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
@@ -92,7 +84,7 @@ def main():
     peft_model.save_pretrained(adapter_dir)
 
     # Inference
-    base = get_lora_inference_model(hf_name, hf_token, load_in_8bit)
+    base = load_model(hf_name, hf_token)
     loaded = PeftModel.from_pretrained(base, adapter_dir)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
