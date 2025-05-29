@@ -2,6 +2,15 @@
 
 Este repositorio proporciona una **imagen Docker** preconfigurada con todas las dependencias necesarias para aplicar técnicas de **PEFT** (Parameter-Efficient Fine-Tuning) sobre modelos de lenguaje de última generación. El objetivo principal es facilitar un entorno reproducible y listo para usar, donde puedas experimentar y desplegar entrenamientos eficientes sin preocuparte por la instalación manual de librerías.
 
+## Modelos LLM soportados
+
+- **[GPT-2](https://huggingface.co/gpt2)**  
+  Modelo autoregresivo de lenguaje desarrollado por OpenAI, conocido por su arquitectura Transformer y entrenado en una gran cantidad de datos de internet. Es ampliamente utilizado como baseline para tareas de generación de texto.
+
+- **[LLaMA 7B](https://huggingface.co/meta-llama/Llama-2-7b-hf)**  
+  Modelo de lenguaje grande (LLM) desarrollado por Meta AI. La versión de 7 mil millones de parámetros (7B) ofrece un buen equilibrio entre rendimiento y eficiencia para tareas de generación y comprensión de lenguaje natural.
+
+
 ## Técnicas PEFT soportadas
 ### **LoRA** (Low-Rank Adaptation)
 
@@ -28,21 +37,13 @@ el uso de memoria.
 - **Prefix Tuning v2**  
 - **IA³** (Injected Attention Adapter)
 
-### Modelos compatibles
-
-- **GPT-2**  
-- **LLaMA 7B**
-
 ### Características principales
 
-1. **Entorno aislado**  
-   La imagen Docker incluye Python 3.x y todas las librerías (Transformers, Accelerate, BitsAndBytes, PEFT, etc.) necesarias para correr tus scripts de fine-tuning.
+1. **Entorno aislado**: La imagen Docker incluye Python 3.x y todas las librerías (Transformers, Accelerate, BitsAndBytes, PEFT, etc.) necesarias para correr tus scripts de fine-tuning.
 
-2. **Optimización de recursos**  
-   Configuraciones por defecto orientadas a entrenamiento en GPU, con soporte para cuantización y bajo uso de memoria.
+2. **Optimización de recursos**: Configuraciones por defecto orientadas a entrenamiento en GPU, con soporte para cuantización y bajo uso de memoria.
 
-3. **Reproducibilidad**  
-   Versión fija de cada dependencia para garantizar que tus experimentos sean consistentes y fácilmente replicables.
+3. **Reproducibilidad**: Versión fija de cada dependencia para garantizar que tus experimentos sean consistentes y fácilmente replicables.
 
 ## **Prerrequisitos**
 * `make` instalado
