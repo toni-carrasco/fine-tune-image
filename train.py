@@ -1,6 +1,7 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
-from peft import LoraConfig, BitFitConfig, get_peft_model, PeftModel
+from peft import LoraConfig, get_peft_model, PeftModel
+from peft.tuners.bitfit import BitFitConfig
 from datasets import load_dataset
 from utils import parse_args, load_env_vars, get_model_config, load_model
 

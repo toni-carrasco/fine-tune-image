@@ -21,3 +21,7 @@ run:
 	@echo "Running container finetune-image with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
 	docker run -e HUGGINGFACE_TOKEN --gpus all --rm finetune-image --model $(MODEL) --peft $(PEFT)
 
+# Start a bash shell inside the container for debugging or exploration
+shell:
+	@echo "Starting interactive shell in finetune-image..."
+	docker run -it --gpus all --rm --entrypoint /bin/bash finetune-image
