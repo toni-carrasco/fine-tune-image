@@ -8,7 +8,7 @@ from typing import Dict, Tuple, Any
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Entrenamiento usando QLoRA o LoRA adapters sobre GPT-2 o LLaMA-7B'
+        description='Entrenamiento usando QLoRA, LoRA o BitFit sobre GPT-2 o LLaMA-7B'
     )
     parser.add_argument(
         '--model',
@@ -19,8 +19,8 @@ def parse_args():
     parser.add_argument(
         '--peft',
         required=True,
-        choices=['lora', 'qlora'],
-        help='Tipo de adapter PEFT a usar: lora o qlora (obligatorio)'
+        choices=['lora', 'qlora', 'bitfit'],
+        help='Tipo de adapter PEFT a usar: lora, qlora, bitfit (obligatorio)'
     )
     parser.add_argument(
         '--input', type=str,
@@ -35,7 +35,7 @@ def parse_args():
         sys.exit(1)
 
     if args.peft is None:
-        print('Error: Debe especificar el peft (lora o qlora)', file=sys.stderr)
+        print('Error: Debe especificar el peft (lora, qlora, bitfit)', file=sys.stderr)
         sys.exit(1)
 
     print("\n\n==================================================")
@@ -115,6 +115,6 @@ def load_model(model_name, hf_token, quantization_config = None):
     if hasattr(model, "quantization_config"):
         print("✅ Modelo cargado con quantization_config → Esto es QLoRA (4-bit)")
     else:
-        print("✅ Modelo cargado sin quantization_config → Esto es LoRA (sin cuantización)")
+        print("✅ Modelo cargado sin quantization_config")
 
     return model
