@@ -32,6 +32,7 @@ COPY utils.py .
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 ENTRYPOINT ["python", "lora.py"]
 
