@@ -77,9 +77,9 @@ def main():
             bnb_4bit_use_double_quant=True,
             bnb_4bit_compute_dtype=torch.float16
         )
-        peft_model = get_peft_model_with_lora_config(args.model, hf_token, target_modules)
+        peft_model = get_peft_model_with_lora_config(args.model, hf_token, target_modules, bnb_config)
     elif args.peft == "lora":
-        peft_model = get_peft_model_with_lora_config(args.model, hf_token, target_modules)
+        peft_model = get_peft_model_with_lora_config(args.model, hf_token, target_modules, bnb_config)
     elif args.peft == "ia3":
         peft_model = get_peft_model_with_ia3_config(args.model, hf_token, target_modules)
     elif args.peft == "prefix":
