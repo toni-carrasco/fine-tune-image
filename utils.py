@@ -101,13 +101,20 @@ def load_model(model_name, hf_token, quantization_config = None):
         model_kwargs["quantization_config"] = quantization_config
 
     if model_name == 'gpt-2':
-        return AutoModelForCausalLM.from_pretrained('gpt2', **model_kwargs)
+        model = AutoModelForCausalLM.from_pretrained('gpt2', **model_kwargs)
 
     elif model_name == 'llama-7b':
         model_kwargs["token"] = hf_token
         if quantization_config is None:
             model_kwargs["torch_dtype"] = torch.float16
-        return AutoModelForCausalLM.from_pretrained('meta-llama/Llama-2-7b-hf', **model_kwargs)
+        model = AutoModelForCausalLM.from_pretrained('meta-llama/Llama-2-7b-hf', **model_kwargs)
 
     else:
         raise ValueError(f'Modelo no soportado: {model_name}')
+
+    if hasattr(model, "quantization_config"):
+        print("✅ Modelo cargado con quantization_config → Esto es QLoRA (4-bit)")
+    else:
+        print("✅ Modelo cargado sin quantization_config → Esto es LoRA (sin cuantización)")
+
+    return model
