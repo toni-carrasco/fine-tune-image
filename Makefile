@@ -1,4 +1,4 @@
-.PHONY: build run
+.PHONY: build run shell
 
 # Build Docker image
 build:
