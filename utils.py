@@ -38,7 +38,7 @@ def parse_args():
         print('Error: Debe especificar el peft (lora o qlora)', file=sys.stderr)
         sys.exit(1)
 
-    print("==================================================")
+    print("\n\n==================================================")
     print("Versión de torch vision:", torchvision.__version__)
     print("Versión de torch:", torch.__version__)
     print("Versión de CUDA en torch:", torch.version.cuda)
@@ -46,7 +46,7 @@ def parse_args():
     print("Número de GPUs detectadas:", torch.cuda.device_count())
     print("LLM Model:", args.model)
     print("PEFT Mode:", args.peft)
-    print("==================================================")
+    print("==================================================\n\n")
 
     return args
 

@@ -5,19 +5,7 @@ from datasets import load_dataset
 from utils import parse_args, load_env_vars, get_model_config, load_model
 
 
-def get_lora_peft_model(model_name, hf_token, target_modules):
-    model = load_model(model_name, hf_token)
-    lora_config = LoraConfig(
-        r=4,
-        lora_alpha=8,
-        lora_dropout=0.2,
-        target_modules=target_modules,
-        fan_in_fan_out=True
-    )
-    return get_peft_model(model, lora_config)
-
-
-def get_qlora_peft_model(model_name, hf_token, target_modules, bnb_config):
+def get_peft_model_with_lora_config(model_name, hf_token, target_modules, bnb_config):
     model = load_model(model_name, hf_token, bnb_config)
     lora_config = LoraConfig(
         r=4,
@@ -54,7 +42,7 @@ def main():
     tokenizer.pad_token_id = tokenizer.eos_token_id
 
     if args.peft == "lora":
-        peft_model = get_lora_peft_model(args.model, hf_token, target_modules)
+        peft_model = get_peft_model_with_lora_config(args.model, hf_token, target_modules, None)
     elif args.peft == "qlora":
         bnb_config = BitsAndBytesConfig(
             load_in_4bit=True,
@@ -62,7 +50,7 @@ def main():
             bnb_4bit_use_double_quant=True,
             bnb_4bit_compute_dtype=torch.float16
         )
-        peft_model = get_qlora_peft_model(args.model, hf_token, target_modules, bnb_config)
+        peft_model = get_peft_model_with_lora_config(args.model, hf_token, target_modules, bnb_config)
     else:
         raise ValueError(f"Modo PEFT no soportado: {args.peft}")
 
@@ -138,4 +126,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
