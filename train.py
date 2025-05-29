@@ -20,9 +20,19 @@ def get_peft_model_with_lora_config(model_name, hf_token, target_modules, bnb_co
 
 def get_peft_model_with_ia3_config(model_name, hf_token, target_modules):
     model = load_model(model_name, hf_token)
+
+    # Detectar si el modelo es tipo GPT-2 (usa 'c_attn')
+    is_gpt2 = 'c_attn' in target_modules
+
+    # Definir módulos FFN compatibles según target_modules
+    candidate_ff_modules = ['mlp', 'fc1', 'gate_proj']
+    feedforward_modules = [m for m in candidate_ff_modules if m in target_modules]
+
     ia3_config = IA3Config(
         target_modules=target_modules,
-        task_type='CAUSAL_LM'
+        feedforward_modules=feedforward_modules,
+        task_type='CAUSAL_LM',
+        fan_in_fan_out=is_gpt2
     )
     return get_peft_model(model, ia3_config)
 
