@@ -29,11 +29,18 @@ y entrena matrices de bajo rango adicionales, preservando precisión mientras re
 el uso de memoria.
 
 ![image](docs/img/qlora_figure.png)
-
 - Dettmers, T., Pagnoni, A., Holtzman, A., & Zettlemoyer, L. (2023). [**QLoRA: Efficient Finetuning of Quantized LLMs**](https://arxiv.org/abs/2305.14314).
 
+### **Prefix Tuning v2**
+
+**P-Tuning v2** extiende la idea original de prompts entrenables insertando vectores en múltiples capas del modelo,
+permitiendo ajustes más profundos y mejorando sustancialmente la efectividad frente a versiones anteriores.
+El enfoque se basa en la modificación de embeddings internos mediante parámetros que actúan como claves semánticas.
+
+![image](docs/img/p_tuning_v2_figure.png)
+- Weng, Benjue (2024). [**Navigating the Landscape of Large Language Models: A Comprehensive Review and Analysis of Paradigms and Fine-Tuning Strategies**](https://arxiv.org/pdf/2404.09022.pdf)
+
 ### TODO
-- **Prefix Tuning v2**  
 - **IA³** (Input-Aware Adapter Adjustment)
 
 ### Características principales
@@ -45,12 +52,10 @@ el uso de memoria.
 3. **Reproducibilidad**: Versión fija de cada dependencia para garantizar que tus experimentos sean consistentes y fácilmente replicables.
 
 ## **Prerrequisitos**
-* `make` instalado
+* `make` instalado.
 * Docker instalado y configurado para usar GPUs (NVIDIA Docker).
     * [Installing the NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
     * [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
-
-
 * Token de Hugging Face para acceder a repositorios con acceso restringido:
 
 ```
@@ -62,9 +67,8 @@ export HUGGINGFACE_TOKEN=<tu_token_HF>
 ## **Estructura**
 
 * **Dockerfile**: Define la imagen base con dependencias (transformers, peft, etc.).
-
 * **train.py**: Implementación en python para aplicar distintas técnicas PEFT en modelos LLM.
-
+* **infer.py**: Carga un LLM ajustado con PEFT y permite generar texto de forma interactiva a partir de entradas del usuario hasta que se introduzca el comando /quit.
 * **Makefile**: Simplifica la construcción de la imagen y la ejecución del contenedor.
 
 ---
