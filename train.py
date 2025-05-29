@@ -128,30 +128,6 @@ def main():
     # Save adapters
     peft_model.save_pretrained(adapter_dir)
 
-    base = load_model(args.model, hf_token, bnb_config)
-    loaded = PeftModel.from_pretrained(base, adapter_dir)
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    loaded.to(device)
-    loaded.eval()
-
-    inputs = tokenizer(
-        args.input,
-        return_tensors='pt', padding=True,
-        truncation=True, max_length=512
-    ).to(device)
-
-    outputs = loaded.generate(
-        **inputs,
-        max_new_tokens=100,
-        temperature=0.7,
-        top_k=50,
-        top_p=0.9,
-        do_sample=True,
-        pad_token_id=tokenizer.eos_token_id
-    )
-
-    print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
 if __name__ == '__main__':
     main()

@@ -1,4 +1,4 @@
-.PHONY: build run shell check-dir
+.PHONY: build train shell check-dir check-vars
 
 # Build Docker image
 build:
@@ -14,8 +14,7 @@ check-dir:
 	fi
 	@chmod u+w $$HOME/fine-tune-outputs
 
-# Run the fine-tuning script with volume mount
-run: check-dir
+check-vars:
 	@# Verifica PEFT
 	@if [ -z "$(PEFT)" ]; then \
 		echo "Error: PEFT no está definido. Uso: make run PEFT=<peft> MODEL=<model>"; \
@@ -26,13 +25,26 @@ run: check-dir
 		echo "Error: MODEL no está definido. Uso: make run PEFT=<peft> MODEL=<model>"; \
 		exit 1; \
 	fi
-	@echo "Running container finetune-image with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
+
+# Run the fine-tuning script with volume mount
+train: check-vars check-dir
+	@echo "Running container finetune-image to train with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
 	docker run -e HUGGINGFACE_TOKEN \
 		--gpus all \
 		--rm \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
 		finetune-image \
 		--model $(MODEL) --peft $(PEFT)
+
+# Run the fine-tuning script with volume mount
+infer: check-vars check-dir
+	@echo "Running container finetune-image to infer with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
+	docker run -e HUGGINGFACE_TOKEN \
+		--gpus all \
+		--rm \
+		-v $$HOME/fine-tune-outputs:/app/outputs \
+		finetune-image \
+        python infer.py --model $(MODEL) --peft $(PEFT)
 
 # Start a bash shell inside the container for debugging or exploration
 shell: check-dir
