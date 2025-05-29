@@ -33,9 +33,8 @@ el uso de memoria.
 - Dettmers, T., Pagnoni, A., Holtzman, A., & Zettlemoyer, L. (2023). [**QLoRA: Efficient Finetuning of Quantized LLMs**](https://arxiv.org/abs/2305.14314).
 
 ### TODO
-- **BitFit**  
 - **Prefix Tuning v2**  
-- **IA³** (Injected Attention Adapter)
+- **IA³** (Input-Aware Adapter Adjustment)
 
 ### Características principales
 
@@ -82,7 +81,7 @@ make build
 
 Para entrenar/ejecutar dentro del contenedor, debes proporcionar dos variables:
 
-* `PEFT`: tecnica peft a aplicar (`lora`,`qlora`, ...)
+* `PEFT`: tecnica peft a aplicar (`lora`,`qlora`, `ia3`, `prefix`)
 
 * `MODEL`: modelo a usar (`gpt-2` o `llama-7b`).
 

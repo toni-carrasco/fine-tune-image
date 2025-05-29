@@ -8,7 +8,7 @@ from typing import Dict, Tuple, Any
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Entrenamiento usando QLoRA, LoRA o BitFit sobre GPT-2 o LLaMA-7B'
+        description='Entrenamiento usando QLoRA, LoRA, IA^3 o Prefix Tuning V2 sobre los modelos GPT-2 o LLaMA-7B'
     )
     parser.add_argument(
         '--model',
@@ -19,8 +19,8 @@ def parse_args():
     parser.add_argument(
         '--peft',
         required=True,
-        choices=['lora', 'qlora', 'bitfit'],
-        help='Tipo de adapter PEFT a usar: lora, qlora, bitfit (obligatorio)'
+        choices=['lora', 'qlora', 'ia3', 'prefix'],
+        help='Tipo de adapter PEFT a usar: lora, qlora, ia3, prefix (obligatorio)'
     )
     parser.add_argument(
         '--input', type=str,
@@ -35,7 +35,7 @@ def parse_args():
         sys.exit(1)
 
     if args.peft is None:
-        print('Error: Debe especificar el peft (lora, qlora, bitfit)', file=sys.stderr)
+        print('Error: Debe especificar el peft (lora, qlora, ia3, prefix)', file=sys.stderr)
         sys.exit(1)
 
     print("\n\n==================================================")
