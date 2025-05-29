@@ -35,6 +35,11 @@ run: check-dir
 		--model $(MODEL) --peft $(PEFT)
 
 # Start a bash shell inside the container for debugging or exploration
-shell:
+shell: check-dir
 	@echo "Starting interactive shell in finetune-image..."
-	docker run -it --gpus all --rm --entrypoint /bin/bash finetune-image
+	docker run -it \
+		--gpus all \
+		--rm \
+		-v $$HOME/finetune-outputs:/app/outputs \
+		--entrypoint /bin/bash \
+		finetune-image
