@@ -7,6 +7,7 @@ RUN apt-get update && \
         python3-pip \
         python3-dev \
         build-essential \
+        git \
         libgoogle-perftools-dev && \
     rm -rf /var/lib/apt/lists/*
 
@@ -17,15 +18,17 @@ RUN pip install --no-cache-dir --upgrade pip && \
       torch==2.7.0+cu126 \
       torchvision==0.22.0+cu126 \
       torchaudio==2.7.0+cu126 \
-      --index-url https://download.pytorch.org/whl/cu126 && \
-    pip install --no-cache-dir \
+      --index-url https://download.pytorch.org/whl/cu126
+
+RUN pip install --no-cache-dir \
       transformers \
       datasets \
       accelerate \
-      peft \
       sentencepiece \
       protobuf \
       bitsandbytes
+
+RUN pip install --no-cache-dir git+https://github.com/huggingface/peft.git
 
 COPY train.py .
 COPY utils.py .
@@ -35,4 +38,3 @@ ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 ENTRYPOINT ["python", "train.py"]
-
