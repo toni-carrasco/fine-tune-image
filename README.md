@@ -71,20 +71,44 @@ export HUGGINGFACE_TOKEN=<tu_token_HF>
 
 ## **Uso con Make**
 
-### **1\. Construir la imagen**
+### **1\. Construir la imagen Docker**
+
+Construye la imagen base para entrenamiento e inferencia con:
 
 ```
 make build
 ```
 
-### **2\. Ejecutar el contenedor**
+### **2\. Entrenamiento del modelo**
 
-Para entrenar/ejecutar dentro del contenedor, debes proporcionar dos variables:
-
-* `PEFT`: tecnica peft a aplicar (`lora`,`qlora`, `ia3`, `prefix`)
-
-* `MODEL`: modelo a usar (`gpt-2` o `llama-7b`).
+Para entrenar un modelo con una técnica PEFT específica, usa:
 
 ```
-make run PEFT=lora MODEL=gpt-2
+make train PEFT=<peft> MODEL=<modelo>
 ```
+
+* `PEFT`: Técnica de fine-tuning (`lora`, `qlora`, `ia3`, `prefix`)
+
+* `MODEL`: Nombre del modelo a usar (`gpt-2`, `llama-7b`)
+
+Asegúrate de haber exportado tu `HUGGINGFACE_TOKEN` en el entorno.
+
+### **3\. Inferencia interactiva**
+
+Para usar el modelo en modo interactivo, ejecuta:
+
+```
+make infer PEFT=<peft> MODEL=<modelo>
+```
+
+Esto iniciará un bucle en el que puedes escribir entradas manualmente. Usa `/quit` para salir.
+
+### **4\. Acceso a una terminal dentro del contenedor**
+
+Si deseas acceder a una terminal bash dentro del contenedor para depuración:
+
+```
+make shell
+```
+
+Esto monta el volumen de salida y abre una terminal interactiva.
