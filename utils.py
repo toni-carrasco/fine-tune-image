@@ -87,8 +87,8 @@ def get_model_config(model_name: str, peft: str) -> SimpleNamespace:
     return SimpleNamespace(
             hf_name=hf_name,
             target_modules=target_modules,
-            output_dir=f'./{model_name}-{peft}-results',
-            adapter_dir=f'./{model_name}-{peft}-adapters',
+            output_dir=f'/app/outputs/{model_name}-{peft}-results',
+            adapter_dir=f'/app/outputs/{model_name}-{peft}-adapters',
             use_fast_tokenizer=use_fast_tokenizer
         )
 

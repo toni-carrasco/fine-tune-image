@@ -63,7 +63,7 @@ export HUGGINGFACE_TOKEN=<tu_token_HF>
 
 * **Dockerfile**: Define la imagen base con dependencias (transformers, peft, etc.).
 
-* **lora.py**: Implementación en python para aplicar LoRA/QLoRA en modelos LLM.
+* **train.py**: Implementación en python para aplicar distintas técnicas PEFT en modelos LLM.
 
 * **Makefile**: Simplifica la construcción de la imagen y la ejecución del contenedor.
 
