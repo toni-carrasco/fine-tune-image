@@ -8,11 +8,11 @@ build:
 # Ensure output directory exists and is writable
 check-dir:
 	@echo "Checking if output directory exists and is writable..."
-	@if [ ! -d "$$HOME/finetune-outputs" ]; then \
-		echo "Creating output directory at $$HOME/finetune-outputs"; \
-		mkdir -p $$HOME/finetune-outputs; \
+	@if [ ! -d "$$HOME/fine-tune-outputs" ]; then \
+		echo "Creating output directory at $$HOME/fine-tune-outputs"; \
+		mkdir -p $$HOME/fine-tune-outputs; \
 	fi
-	@chmod u+w $$HOME/finetune-outputs
+	@chmod u+w $$HOME/fine-tune-outputs
 
 # Run the fine-tuning script with volume mount
 run: check-dir
@@ -30,7 +30,7 @@ run: check-dir
 	docker run -e HUGGINGFACE_TOKEN \
 		--gpus all \
 		--rm \
-		-v $$HOME/finetune-outputs:/app/outputs \
+		-v $$HOME/fine-tune-outputs:/app/outputs \
 		finetune-image \
 		--model $(MODEL) --peft $(PEFT)
 
