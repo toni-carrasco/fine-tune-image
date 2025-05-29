@@ -30,11 +30,11 @@ RUN pip install --no-cache-dir \
 
 RUN pip install --no-cache-dir git+https://github.com/huggingface/peft.git
 
-COPY train.py .
+COPY lora.py .
 COPY utils.py .
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-ENTRYPOINT ["python", "train.py"]
+ENTRYPOINT ["python", "lora.py"]
