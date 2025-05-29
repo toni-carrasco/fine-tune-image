@@ -39,7 +39,8 @@ train: check-vars check-dir
 # Run the fine-tuning script with volume mount
 infer: check-vars check-dir
 	@echo "Running container finetune-image to infer with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
-	docker run -e HUGGINGFACE_TOKEN \
+	docker run -it --rm \
+		-e HUGGINGFACE_TOKEN \
 		--gpus all \
 		--rm \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
