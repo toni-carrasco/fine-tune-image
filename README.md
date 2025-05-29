@@ -10,13 +10,20 @@ Durante el entrenamiento, se actualizan únicamente estas matrices, mientras que
 permanecen congelados, reduciendo significativamente el consumo de recursos durante el entrenamiento.
 
 ![image](docs/img/lora_figure.png)
-- **Low-Rank Adaptation of Large Language Models**  
-  Edward Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang & Weizhu Chen. _arXiv preprint arXiv:2106.09685_ (2021).  
-  🔗 [https://arxiv.org/abs/2106.09685](https://arxiv.org/abs/2106.09685)
-- Codigo de entrenamiento en python: **[lora.py](lora.py)**
+- Edward Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang & Weizhu Chen. (2021).
+  [**Low-Rank Adaptation of Large Language Models**](https://arxiv.org/abs/2106.09685)
+
+### **QLoRA** (Quantized LoRA)
+**QLoRA** combina cuantización a 4 bits del modelo base con LoRA para permitir el ajuste fino de LLMs grandes
+en hardware de consumo. La arquitectura cuantiza las matrices originales usando técnicas como NF4 (NormalFloat 4-bit)
+y entrena matrices de bajo rango adicionales, preservando precisión mientras reduce drásticamente
+el uso de memoria.
+
+![image](docs/img/qlora_figure.png)
+
+- Dettmers, T., Pagnoni, A., Holtzman, A., & Zettlemoyer, L. (2023). [**QLoRA: Efficient Finetuning of Quantized LLMs**](https://arxiv.org/abs/2305.14314).
 
 ### TODO
-- **QLoRA** (Quantized LoRA)  
 - **BitFit**  
 - **Prefix Tuning v2**  
 - **IA³** (Injected Attention Adapter)
@@ -38,7 +45,7 @@ permanecen congelados, reduciendo significativamente el consumo de recursos dura
    Versión fija de cada dependencia para garantizar que tus experimentos sean consistentes y fácilmente replicables.
 
 ## **Prerrequisitos**
-
+* `make` instalado
 * Docker instalado y configurado para usar GPUs (NVIDIA Docker).
     * [Installing the NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
     * [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
@@ -56,7 +63,7 @@ export HUGGINGFACE_TOKEN=<tu_token_HF>
 
 * **Dockerfile**: Define la imagen base con dependencias (transformers, peft, etc.).
 
-* **lora.py**: Implementación en python para aplicar LoRA (Low-Rank Adaptation) en modelos LLM.
+* **lora.py**: Implementación en python para aplicar LoRA/QLoRA en modelos LLM.
 
 * **Makefile**: Simplifica la construcción de la imagen y la ejecución del contenedor.
 
