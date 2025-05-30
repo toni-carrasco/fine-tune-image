@@ -24,14 +24,6 @@ define-image-name:
 	echo $${IMAGE_NAME} > .image_name; \
 	echo "Nombre de imagen Docker: $${IMAGE_NAME}"
 
-# Obtener el nombre de la imagen desde el archivo
-IMAGE_NAME := $(shell cat .image_name 2>/dev/null || echo finetune-image)
-
-# Build Docker image
-build: define-image-name
-	@echo "Building Docker image $(IMAGE_NAME)..."
-	sudo docker build -t $(IMAGE_NAME) .
-
 # Ensure output directory exists and is writable
 check-dir:
 	@echo "Checking if output directory exists and is writable..."
@@ -53,28 +45,37 @@ check-vars:
 		exit 1; \
 	fi
 
-# Run the fine-tuning script with volume mount
+# Build Docker image
+build: define-image-name
+	@IMAGE_NAME=$$(cat .image_name); \
+	echo "Building Docker image $$IMAGE_NAME..."; \
+	sudo docker build -t $$IMAGE_NAME .
+
+# Train
 train: define-image-name check-vars check-dir
-	@echo "Running container $(IMAGE_NAME) to train with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
+	@IMAGE_NAME=$$(cat .image_name); \
+	echo "Running container $$IMAGE_NAME to train with PEFT=$(PEFT) and MODEL=$(MODEL)..."; \
 	sudo -E docker run --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
 		-e DATASET_SIZE_RATIO \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
 		-v ./training_configuration.json:/app/training_configuration.json \
-		$(IMAGE_NAME) python train.py --model $(MODEL) --peft $(PEFT)
+		$$IMAGE_NAME python train.py --model $(MODEL) --peft $(PEFT)
 
-# Run the fine-tuning script with volume mount
+# Infer
 infer: define-image-name check-vars check-dir
-	@echo "Running container $(IMAGE_NAME) to infer with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
+	@IMAGE_NAME=$$(cat .image_name); \
+	echo "Running container $$IMAGE_NAME to infer with PEFT=$(PEFT) and MODEL=$(MODEL)..."; \
 	sudo -E docker run -it --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
-		$(IMAGE_NAME) python infer.py --model $(MODEL) --peft $(PEFT)
+		$$IMAGE_NAME python infer.py --model $(MODEL) --peft $(PEFT)
 
-# Start a bash shell inside the container for debugging or exploration
+# Shell
 shell: define-image-name check-dir
-	@echo "Starting interactive shell in $(IMAGE_NAME)..."
+	@IMAGE_NAME=$$(cat .image_name); \
+	echo "Starting interactive shell in $$IMAGE_NAME..."; \
 	sudo -E docker run -it --rm --gpus all \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
 		--entrypoint /bin/bash \
-		$(IMAGE_NAME)
+		$$IMAGE_NAME

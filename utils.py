@@ -43,7 +43,7 @@ def parse_args():
         print('Error: Debe especificar el peft (lora, qlora, ia3, prefix)', file=sys.stderr)
         sys.exit(1)
 
-    print("✅ Entorno de ejecucion:")
+    print("\n\n✅ Entorno de ejecucion:")
     print("Versión de torch vision:", torchvision.__version__)
     print("Versión de torch:", torch.__version__)
     print("Versión de CUDA en torch:", torch.version.cuda)
