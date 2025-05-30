@@ -32,8 +32,8 @@ train: check-vars check-dir
 	docker run --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
-		finetune-image \
-		python train.py --model $(MODEL) --peft $(PEFT)
+		-v ./training_configuration.json:/app/training_configuration.json
+		finetune-image python train.py --model $(MODEL) --peft $(PEFT)
 
 # Run the fine-tuning script with volume mount
 infer: check-vars check-dir
@@ -41,8 +41,7 @@ infer: check-vars check-dir
 	docker run -it --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
-		finetune-image \
-        python infer.py --model $(MODEL) --peft $(PEFT)
+		finetune-image python infer.py --model $(MODEL) --peft $(PEFT)
 
 # Start a bash shell inside the container for debugging or exploration
 shell: check-dir
