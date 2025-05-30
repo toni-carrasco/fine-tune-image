@@ -4,19 +4,35 @@ from datasets import load_dataset
 
 def _preprocess_wikisql(tokenizer, batch):
     questions = batch["question"]
-    sql_strs  = [entry["human_readable"] for entry in batch["sql"]]
-    texts = [
-        f"Translate to SQL:\nQuestion: {q}\nSQL: {s}"
-        for q, s in zip(questions, sql_strs)
-    ]
+    columns   = [", ".join(tbl["header"]) for tbl in batch["table"]]
+    targets   = [entry["human_readable"] for entry in batch["sql"]]
+
+    inputs = []
+    for q, cols in zip(questions, columns):
+        # aquí definimos el “prompt” de entrada
+        inputs.append(
+            f"Question: {q}\n"
+            f"Columns: {cols}\n"
+            f"SQL:"
+        )
+
     tokenized = tokenizer(
-        texts,
+        inputs,
         truncation=True,
         padding="max_length",
-        max_length=512
+        max_length=256
     )
-    tokenized["labels"] = tokenized["input_ids"].copy()
+    # las etiquetas son lo que queremos que salga tras el “SQL:”
+    labels = tokenizer(
+        targets,
+        truncation=True,
+        padding="max_length",
+        max_length=128
+    ).input_ids
+
+    tokenized["labels"] = labels
     return tokenized
+
 
 def _print_dataset_examples(dataset, split: str = "train", n: int = 5):
     """
