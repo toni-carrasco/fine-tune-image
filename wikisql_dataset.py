@@ -28,7 +28,7 @@ def _preprocess_wikisql(tokenizer, batch):
         targets,
         truncation=True,
         padding="max_length",
-        max_length=128
+        max_length=256
     ).input_ids
 
     tokenized["labels"] = labels
