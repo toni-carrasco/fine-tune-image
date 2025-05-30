@@ -37,13 +37,12 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
         rows.append({
             "question": ex["question"],
             "human_readable_sql": ex["sql"]["human_readable"],
-            "table_id": ex["table_id"],
+            "table_name": ex["table"]["name"],
             "columns": ", ".join(ex["table"]["header"]),
-            "rows_in_table": len(ex["table"]["rows"])
         })
 
     df = pd.DataFrame(rows)
-    
+
     print(df.to_markdown(index=False))
 
     dataset_size_ratio = float(dataset_size_ratio)
