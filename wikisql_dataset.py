@@ -22,7 +22,6 @@ def _print_dataset_examples(dataset, split: str = "train", n: int = 5):
     """
     Prints n examples from the specified split of the WikiSQL dataset.
     """
-    #examples = dataset[split].shuffle(seed=42).select(range(n))
     examples = dataset[split].select(range(n))
 
     print()
