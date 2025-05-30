@@ -1,4 +1,5 @@
 import torch
+import time
 import psutil
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
@@ -129,8 +130,6 @@ def main():
 
     ### Store metrics
     metrics = {
-        "peft": peft_type,
-        "model": model_name,
         "training_time_sec": round(training_duration, 2),
         "gpu_memory_used_mb": round(gpu_memory_used, 2),
         "ram_used_mb": round(end_ram - start_ram, 2),
