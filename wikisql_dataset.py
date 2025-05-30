@@ -29,11 +29,12 @@ def _print_dataset_examples(dataset, split: str = "train", n: int = 5):
         question = ex["question"]
         hr_sql = ex["sql"]["human_readable"]
 
+        print()
         print(f"Example {idx}")
-        print(f"table:             {table_name}")
-        print(f"columns:           {columns}")
-        print(f"question:          {question}")
-        print(f"human_readable_sql:{hr_sql}")
+        print(f"table:              {table_name}")
+        print(f"columns:            {columns}")
+        print(f"question:           {question}")
+        print(f"human_readable_sql: {hr_sql}")
         print("-" * 80)
 
 def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
