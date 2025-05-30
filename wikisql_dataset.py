@@ -29,6 +29,7 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_sample_size=None):
         trust_remote_code=True
     )
 
+    dataset_sample_size = float(dataset_sample_size)
     if dataset_sample_size is not None:
         train_total = len(raw["train"])
         eval_total = len(raw["validation"])
@@ -36,8 +37,8 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_sample_size=None):
         train_sample_size = int(train_total * dataset_sample_size / 100)
         eval_sample_size  = int(eval_total  * dataset_sample_size / 100)
 
-        train_raw = raw["train"].select(range(train_sample_size))
-        eval_raw  = raw["validation"].select(range(eval_sample_size))
+        train_raw = raw["train"].shuffle(seed=42).select(range(train_sample_size))
+        eval_raw  = raw["validation"].shuffle(seed=42).select(range(eval_sample_size))
     else:
         train_raw = raw["train"]
         eval_raw  = raw["validation"]
