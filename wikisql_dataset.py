@@ -77,9 +77,10 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
         train_sample_size = int(train_total * ratio / 100)
         eval_sample_size  = int(eval_total  * ratio / 100)
 
-        print(f'\n✅ Reducing dataset to {ratio}%')
-        print(f'Train samples: {train_sample_size}')
-        print(f'Eval samples {eval_sample_size}')
+        if (ratio < 100):
+            print(f'\n✅ Reducing dataset to {ratio}%')
+            print(f'Train samples: {train_sample_size}')
+            print(f'Eval samples {eval_sample_size}')
 
         train_raw = raw["train"].shuffle(seed=42).select(range(train_sample_size))
         eval_raw  = raw["validation"].shuffle(seed=42).select(range(eval_sample_size))
