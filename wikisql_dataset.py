@@ -1,6 +1,5 @@
 import os
 import sys
-import pandas as pd
 from datasets import load_dataset
 
 def _preprocess_wikisql(tokenizer, batch):
@@ -41,9 +40,7 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
             "columns": ", ".join(ex["table"]["header"]),
         })
 
-    df = pd.DataFrame(rows)
-
-    print(df.to_markdown(index=False))
+    print(rows)
 
     dataset_size_ratio = float(dataset_size_ratio)
     if dataset_size_ratio is not None:
