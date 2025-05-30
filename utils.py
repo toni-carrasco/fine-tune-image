@@ -1,11 +1,15 @@
 import argparse
 import os
 import sys
-import torch, torchvision
 import json
+import time
+import psutil
+import torch, torchvision
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from types import SimpleNamespace
 from typing import Dict, Tuple, Any
+from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex, nvmlDeviceGetMemoryInfo, nvmlShutdown
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -132,3 +136,43 @@ def load_training_arguments_from_json(json_path: str, output_dir: str):
     print("==================================================\n")
 
     return config
+
+
+def start_benchmark_metrics():
+    process = psutil.Process()
+    nvmlInit()
+    gpu_handle = nvmlDeviceGetHandleByIndex(0)
+    metrics = {
+        "start_time": time.time(),
+        "start_ram_mb": process.memory_info().rss / (1024 ** 2),
+        "process": process,
+        "gpu_handle": gpu_handle
+    }
+    return metrics
+
+
+def stop_benchmark_metrics(metrics):
+    end_time = time.time()
+    training_duration = end_time - metrics["start_time"]
+
+    process = metrics["process"]
+    gpu_handle = metrics["gpu_handle"]
+
+    end_ram = process.memory_info().rss / (1024 ** 2)
+    ram_used = end_ram - metrics["start_ram_mb"]
+    cpu_percent = process.cpu_percent(interval=1.0)
+
+    gpu_mem_info = nvmlDeviceGetMemoryInfo(gpu_handle)
+    gpu_util_info = nvmlDeviceGetUtilizationRates(gpu_handle)
+    gpu_memory_used = gpu_mem_info.used / (1024 ** 2)  # MB
+    gpu_util_percent = gpu_util_info.gpu
+
+    nvmlShutdown()
+
+    return {
+        "training_time_sec": round(training_duration, 2),
+        "ram_used_mb": round(ram_used, 2),
+        "cpu_percent": round(cpu_percent, 2),
+        "gpu_memory_used_mb": round(gpu_memory_used, 2),
+        "gpu_utilization_percent": round(gpu_util_percent, 2)
+    }
