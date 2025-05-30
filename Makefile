@@ -19,7 +19,7 @@ help:
 # Build Docker image
 build:
 	@echo "Building Docker image finetune-image..."
-	docker build -t finetune-image .
+	sudo docker build -t finetune-image .
 
 # Ensure output directory exists and is writable
 check-dir:
@@ -45,7 +45,7 @@ check-vars:
 # Run the fine-tuning script with volume mount
 train: check-vars check-dir
 	@echo "Running container finetune-image to train with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
-	docker run --rm --gpus all \
+	sudo -E docker run --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
 		-e DATASET_SAMPLE_SIZE \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
@@ -55,7 +55,7 @@ train: check-vars check-dir
 # Run the fine-tuning script with volume mount
 infer: check-vars check-dir
 	@echo "Running container finetune-image to infer with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
-	docker run -it --rm --gpus all \
+	sudo -E docker run -it --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
 		finetune-image python infer.py --model $(MODEL) --peft $(PEFT)
@@ -63,7 +63,7 @@ infer: check-vars check-dir
 # Start a bash shell inside the container for debugging or exploration
 shell: check-dir
 	@echo "Starting interactive shell in finetune-image..."
-	docker run -it --rm --gpus all \
+	sudo -E docker run -it --rm --gpus all \
 		-v $$HOME/finetune-outputs:/app/outputs \
 		--entrypoint /bin/bash \
 		finetune-image
