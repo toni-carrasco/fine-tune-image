@@ -22,11 +22,13 @@ def _preprocess_wikisql(tokenizer, batch):
 def _print_markdown_table(records: List[Dict[str, Any]]) -> None:
     headers = list(records[0].keys())
     widths = [max(len(str(r.get(h, ""))) for r in records + [dict(zip(headers, headers))]) for h in headers]
+
     # cabecera
     sep_header = "| " + " | ".join(h.ljust(widths[i]) for i,h in enumerate(headers)) + " |"
     sep_line   = "|-" + "-|-".join("-"*w for w in widths) + "-|"
     print(sep_header)
     print(sep_line)
+
     # filas
     for r in records:
         row = "| " + " | ".join(str(r.get(h, "")).ljust(widths[i]) for i,h in enumerate(headers)) + " |"
@@ -52,7 +54,7 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
             "columns": ", ".join(ex["table"]["header"]),
         })
 
-    _print_markdown_table(rows)
+   #_print_markdown_table(rows)
 
     if dataset_size_ratio is not None:
         ratio = float(dataset_size_ratio)
