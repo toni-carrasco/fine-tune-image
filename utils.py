@@ -39,7 +39,7 @@ def parse_args():
         print('Error: Debe especificar el peft (lora, qlora, ia3, prefix)', file=sys.stderr)
         sys.exit(1)
 
-    print("\n\n==================================================")
+    print("\n==================================================")
     print("Versión de torch vision:", torchvision.__version__)
     print("Versión de torch:", torch.__version__)
     print("Versión de CUDA en torch:", torch.version.cuda)
@@ -47,7 +47,7 @@ def parse_args():
     print("Número de GPUs detectadas:", torch.cuda.device_count())
     print("LLM Model:", args.model)
     print("PEFT Mode:", args.peft)
-    print("==================================================\n\n")
+    print("==================================================\n")
 
     return args
 
@@ -126,10 +126,10 @@ def load_training_arguments_from_json(json_path: str, output_dir: str):
 
     config['output_dir'] = output_dir
 
-    print("\n\n=============== Training parameters ==============")
+    print("\n=============== Training parameters ==============")
     for key, value in config.items():
-        print(f"{key} ({type(value)}): {value}")
-    print("==================================================\n\n")
+        print(f"{key} = {value} of type ({type(value)})")
+    print("==================================================\n")
 
     sys.exit(1)
 
