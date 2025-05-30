@@ -29,6 +29,15 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
         trust_remote_code=True
     )
 
+    examples = raw["train"].select(range(5))
+
+    for ex in examples:
+        q = ex["question"]
+        sql_hr = ex["sql"]["human_readable"]
+        print(f"Question: {q!r}")
+        print(f"SQL:      {sql_hr!r}")
+        print("---")
+
     dataset_size_ratio = float(dataset_size_ratio)
     if dataset_size_ratio is not None:
         train_total = len(raw["train"])
