@@ -75,7 +75,9 @@ export HUGGINGFACE_TOKEN=<tu_token_HF>
 * **Dockerfile**: Define la imagen base con dependencias (transformers, peft, etc.).
 * **train.py**: Implementación en python para aplicar distintas técnicas PEFT en modelos LLM.
 * **infer.py**: Carga un LLM ajustado con PEFT y permite generar texto de forma interactiva a partir de entradas del usuario hasta que se introduzca el comando /quit.
-* **Makefile**: Simplifica la construcción de la imagen y la ejecución del contenedor.
+* **Makefile**: Simplifica la construcción de la imagen y la ejecución del contenedor con comandos como `make train`, `make infer` o `make shell`.
+* **utils.py**: Contiene funciones auxiliares de propósito general utilizadas en distintos scripts del proyecto.
+* **training_configuration.json**: Fichero de configuración con los valores paramétricos del entrenamiento. Este fichero se monta automáticamente al ejecutar la imagen Docker para que `train.py` pueda acceder a los parámetros definidos sin necesidad de modificar el código.
 
 ---
 
