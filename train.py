@@ -83,8 +83,10 @@ def main():
         raise ValueError(f"Modo PEFT no soportado: {args.peft}")
 
     # Dataset
-    print(dataset_sample_size)
-    train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token)
+    if dataset_sample_size is not None:
+        train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_sample_size)
+    else:
+        train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token)
 
     # Training args
     training_args = TrainingArguments(**training_config)

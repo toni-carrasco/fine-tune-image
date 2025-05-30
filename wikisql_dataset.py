@@ -20,7 +20,7 @@ def _preprocess_wikisql(tokenizer, batch):
     return tokenized
 
 
-def get_wikisql_datasets(tokenizer, hf_token):
+def get_wikisql_datasets(tokenizer, hf_token, dataset_sample_size=None):
     # Dataset
     print('Loading WikiSQL…')
     raw = load_dataset(
@@ -29,8 +29,18 @@ def get_wikisql_datasets(tokenizer, hf_token):
         trust_remote_code=True
     )
 
-    train_raw = raw["train"]
-    eval_raw  = raw["validation"]
+    if dataset_sample_size is not None:
+        train_total = len(raw["train"])
+        eval_total = len(raw["validation"])
+
+        train_sample_size = int(train_total * dataset_sample_size / 100)
+        eval_sample_size  = int(eval_total  * dataset_sample_size / 100)
+
+        train_raw = raw["train"].select(range(train_sample_size))
+        eval_raw  = raw["validation"].select(range(eval_sample_size))
+    else:
+        train_raw = raw["train"]
+        eval_raw  = raw["validation"]
 
     train_dataset = train_raw.map(
         lambda batch: _preprocess_wikisql(tokenizer, batch),
