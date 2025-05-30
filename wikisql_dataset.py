@@ -3,7 +3,6 @@ import sys
 from datasets import load_dataset
 
 def _preprocess_wikisql(tokenizer, batch):
-    # pull out the human_readable SQL from the nested dict
     questions = batch["question"]
     sql_strs  = [entry["human_readable"] for entry in batch["sql"]]
     texts = [
@@ -20,9 +19,7 @@ def _preprocess_wikisql(tokenizer, batch):
     return tokenized
 
 def _print_markdown_table(records: List[Dict[str, Any]]) -> None:
-    # extrae cabeceras en orden de aparición
     headers = list(records[0].keys())
-    # calcula ancho máximo de cada columna
     widths = [max(len(str(r.get(h, ""))) for r in records + [dict(zip(headers, headers))]) for h in headers]
     # cabecera
     sep_header = "| " + " | ".join(h.ljust(widths[i]) for i,h in enumerate(headers)) + " |"
@@ -36,7 +33,7 @@ def _print_markdown_table(records: List[Dict[str, Any]]) -> None:
 
 def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
     # Dataset
-    print('Loading WikiSQL…')
+    print('Loading WikiSQL...')
     raw = load_dataset(
         "Salesforce/wikisql",
         token=hf_token,
@@ -56,17 +53,20 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
 
     _print_markdown_table(rows)
 
-    dataset_size_ratio = float(dataset_size_ratio)
     if dataset_size_ratio is not None:
+        ratio = float(dataset_size_ratio)
+        if not (0 < ratio <= 100):
+            raise ValueError("dataset_size_ratio must be between 0 and 100")
+
         train_total = len(raw["train"])
         eval_total = len(raw["validation"])
 
-        train_sample_size = int(train_total * dataset_size_ratio / 100)
-        eval_sample_size  = int(eval_total  * dataset_size_ratio / 100)
+        train_sample_size = int(train_total * ratio / 100)
+        eval_sample_size  = int(eval_total  * ratio / 100)
 
-        print(f'Reducing dataset to {}%', dataset_size_ratio)
-        print(f'Train samples: {}', train_sample_size)
-        print(f'Eval samples {}', eval_sample_size)
+        print(f'Reducing dataset to {ratio}%')
+        print(f'Train samples: {train_sample_size}')
+        print(f'Eval samples {eval_sample_size}')
 
         train_raw = raw["train"].shuffle(seed=42).select(range(train_sample_size))
         eval_raw  = raw["validation"].shuffle(seed=42).select(range(eval_sample_size))
