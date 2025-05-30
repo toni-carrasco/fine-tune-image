@@ -1,8 +1,17 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
-from utils import parse_args, load_env_vars, get_model_config, load_model, load_training_arguments_from_json
 from wikisql_dataset import get_wikisql_datasets
+from utils import (
+    parse_args,
+    load_env_vars,
+    get_model_config,
+    load_model,
+    load_training_arguments_from_json,
+    start_benchmark_metrics,
+    stop_benchmark_metrics
+)
+
 
 def get_peft_model_with_lora_config(model_name, hf_token, target_modules, bnb_config):
     model = load_model(model_name, hf_token, bnb_config)
@@ -96,7 +105,11 @@ def main():
         train_dataset=train_dataset,
         eval_dataset=eval_dataset
     )
+
+    metrics = start_benchmark_metrics()
     trainer.train()
+    metrics = stop_benchmark_metrics(metrics)
+    print(metrics)
 
     # Save adapters
     peft_model.save_pretrained(config.adapter_dir)

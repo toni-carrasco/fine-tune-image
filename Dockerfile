@@ -26,7 +26,9 @@ RUN pip install --no-cache-dir \
       accelerate \
       sentencepiece \
       protobuf \
-      bitsandbytes
+      bitsandbytes \
+      psutil \
+      pynvml
 
 RUN pip install --no-cache-dir git+https://github.com/huggingface/peft.git
 
