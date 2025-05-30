@@ -9,7 +9,7 @@ def _preprocess_wikisql(tokenizer, batch):
 
     inputs = []
     for q, cols in zip(questions, columns):
-        # aquí definimos el “prompt” de entrada
+        # definimos el prompt de entrada
         inputs.append(
             f"Question: {q}\n"
             f"Columns: {cols}\n"
@@ -22,6 +22,7 @@ def _preprocess_wikisql(tokenizer, batch):
         padding="max_length",
         max_length=256
     )
+
     # las etiquetas son lo que queremos que salga tras el “SQL:”
     labels = tokenizer(
         targets,
