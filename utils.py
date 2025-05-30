@@ -8,7 +8,7 @@ import torch, torchvision
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from types import SimpleNamespace
 from typing import Dict, Tuple, Any
-from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex, nvmlDeviceGetMemoryInfo, nvmlShutdown
+from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex, nvmlDeviceGetMemoryInfo, nvmlDeviceGetUtilizationRates, nvmlShutdown
 
 
 def parse_args():
