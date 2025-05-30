@@ -33,6 +33,7 @@ RUN pip install --no-cache-dir git+https://github.com/huggingface/peft.git
 COPY train.py .
 COPY infer.py .
 COPY utils.py .
+COPY training_configuration.json .
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility

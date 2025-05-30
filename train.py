@@ -1,8 +1,8 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
-from peft import LoraConfig, IA3Config, PrefixTuningConfig, get_peft_model, PeftModel
+from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
 from datasets import load_dataset
-from utils import parse_args, load_env_vars, get_model_config, load_model
+from utils import parse_args, load_env_vars, get_model_config, load_model, load_training_arguments_from_json
 
 
 def get_peft_model_with_lora_config(model_name, hf_token, target_modules, bnb_config):
@@ -48,22 +48,17 @@ def get_peft_model_with_prefix_config(model_name, hf_token):
 
 def main():
     args = parse_args()
-
+    config = get_model_config(args.model, args.peft)
     env = load_env_vars()
     hf_token = env.hf_token
     debug_mode = env.debug_mode.lower() in ('1', 'true', 'yes')
 
-    config = get_model_config(args.model, args.peft)
-    hf_name = config.hf_name
-    target_modules = config.target_modules
-    output_dir = config.output_dir
-    adapter_dir = config.adapter_dir
-    use_fast_tokenizer = config.use_fast_tokenizer
+    training_config = load_training_arguments_from_json("training_configuration.json", config.output_dir)
 
     # Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(
-        hf_name,
-        use_fast=use_fast_tokenizer,
+        config.hf_name,
+        use_fast=config.use_fast_tokenizer,
         token=hf_token
     )
     tokenizer.pad_token = tokenizer.eos_token
@@ -77,11 +72,11 @@ def main():
             bnb_4bit_use_double_quant=True,
             bnb_4bit_compute_dtype=torch.float16
         )
-        peft_model = get_peft_model_with_lora_config(args.model, hf_token, target_modules, bnb_config)
+        peft_model = get_peft_model_with_lora_config(args.model, hf_token, config.target_modules, bnb_config)
     elif args.peft == "lora":
-        peft_model = get_peft_model_with_lora_config(args.model, hf_token, target_modules, bnb_config)
+        peft_model = get_peft_model_with_lora_config(args.model, hf_token, config.target_modules, bnb_config)
     elif args.peft == "ia3":
-        peft_model = get_peft_model_with_ia3_config(args.model, hf_token, target_modules)
+        peft_model = get_peft_model_with_ia3_config(args.model, hf_token, config.target_modules)
     elif args.peft == "prefix":
         peft_model = get_peft_model_with_prefix_config(args.model, hf_token)
     else:
@@ -104,19 +99,7 @@ def main():
     eval_dataset = eval_subset.map(preprocess_function, batched=True)
 
     # Training args
-    training_args = TrainingArguments(
-        output_dir=output_dir,
-        num_train_epochs=3,
-        per_device_train_batch_size=2,
-        gradient_accumulation_steps=8,
-        eval_steps=10,
-        save_steps=10,
-        logging_steps=10,
-        learning_rate=5e-5,
-        fp16=True,
-        report_to='none'
-    )
-
+    training_args = TrainingArguments(**training_config)
     trainer = Trainer(
         model=peft_model,
         args=training_args,
@@ -126,7 +109,7 @@ def main():
     trainer.train()
 
     # Save adapters
-    peft_model.save_pretrained(adapter_dir)
+    peft_model.save_pretrained(config.adapter_dir)
 
 
 if __name__ == '__main__':

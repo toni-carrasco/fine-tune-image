@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import torch, torchvision
+import json
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from types import SimpleNamespace
 from typing import Dict, Tuple, Any
@@ -118,3 +119,18 @@ def load_model(model_name, hf_token, quantization_config = None):
         print("✅ Modelo cargado sin quantization_config")
 
     return model
+
+def load_training_arguments_from_json(json_path: str, output_dir: str):
+    with open(json_path, 'r') as f:
+        config = json.load(f)
+
+    config['output_dir'] = output_dir
+
+    print("\n\n=============== Training parameters ==============")
+    for key, value in config.items():
+        print(f"{key} ({type(value)}): {value}")
+    print("==================================================\n\n")
+
+    sys.exit(1)
+
+    return config
