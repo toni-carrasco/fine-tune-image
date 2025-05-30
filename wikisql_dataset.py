@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import List, Dict, Any
 from datasets import load_dataset
 
 def _preprocess_wikisql(tokenizer, batch):
