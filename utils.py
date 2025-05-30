@@ -152,7 +152,7 @@ def start_benchmark_metrics():
     return metrics
 
 
-def stop_benchmark_metrics(metrics):
+def stop_benchmark_metrics(metrics, output_dir):
     end_time = time.time()
     training_duration = end_time - metrics["start_time"]
 
@@ -170,10 +170,21 @@ def stop_benchmark_metrics(metrics):
 
     nvmlShutdown()
 
-    return {
+    results = {
         "training_time_sec": round(training_duration, 2),
         "ram_used_mb": round(ram_used, 2),
         "cpu_percent": round(cpu_percent, 2),
         "gpu_memory_used_mb": round(gpu_memory_used, 2),
         "gpu_utilization_percent": round(gpu_util_percent, 2)
     }
+
+    print(results)
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    output_path = os.path.join(output_dir, "benchmark_results.json")
+    with open(output_path, "w") as f:
+        json.dump(results, f, indent=2)
+
+    return results

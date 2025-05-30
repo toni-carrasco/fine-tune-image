@@ -105,8 +105,7 @@ def main():
 
     metrics = start_benchmark_metrics()
     trainer.train()
-    metrics = stop_benchmark_metrics(metrics)
-    print(metrics)
+    stop_benchmark_metrics(metrics, config.output_dir)
 
     # Save adapters
     peft_model.save_pretrained(config.adapter_dir)
