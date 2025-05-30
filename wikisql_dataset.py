@@ -19,20 +19,38 @@ def _preprocess_wikisql(tokenizer, batch):
     tokenized["labels"] = tokenized["input_ids"].copy()
     return tokenized
 
-def _print_markdown_table(records: List[Dict[str, Any]]) -> None:
-    headers = list(records[0].keys())
-    widths = [max(len(str(r.get(h, ""))) for r in records + [dict(zip(headers, headers))]) for h in headers]
+def _print_markdown_table(raw_dataset, split: str = "train", n: int = 5):
+    """
+    Selects `n` examples from `raw_dataset[split]`, builds rows,
+    and prints a Markdown table of question, SQL, table name & columns.
+    """
+    # Take first `n` examples
+    examples = raw_dataset[split].select(range(n))
 
-    # cabecera
-    sep_header = "| " + " | ".join(h.ljust(widths[i]) for i,h in enumerate(headers)) + " |"
-    sep_line   = "|-" + "-|-".join("-"*w for w in widths) + "-|"
-    print(sep_header)
+    records = []
+    for ex in examples:
+        records.append({
+            "question":           ex["question"],
+            "human_readable_sql": ex["sql"]["human_readable"],
+            "table_name":         ex["table"]["name"],
+            "columns":            ", ".join(ex["table"]["header"]),
+        })
+
+    headers = ["question", "human_readable_sql", "table_name", "columns"]
+    # compute column widths
+    widths = [max(len(str(r[h])) for r in records + [{h: h}]) for h in headers]
+
+    # header line
+    header_line = "| " + " | ".join(h.ljust(widths[i]) for i, h in enumerate(headers)) + " |"
+    sep_line    = "|-" + "-|-".join("-" * widths[i] for i in range(len(headers))) + "-|"
+    print(header_line)
     print(sep_line)
 
-    # filas
+    # rows
     for r in records:
-        row = "| " + " | ".join(str(r.get(h, "")).ljust(widths[i]) for i,h in enumerate(headers)) + " |"
-        print(row)
+        line = "| " + " | ".join(str(r[h]).ljust(widths[i]) for i, h in enumerate(headers)) + " |"
+        print(line)
+    print()
 
 def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
     # Dataset
@@ -43,7 +61,7 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
         trust_remote_code=True
     )
 
-    examples = raw["train"].select(range(5))
+    _print_markdown_table(raw, split="train", n=5)
 
     rows = []
     for ex in examples:
