@@ -40,10 +40,16 @@ El enfoque se basa en la modificación de embeddings internos mediante parámetr
 ![image](docs/img/p_tuning_v2_figure.png)
 - Weng, Benjue (2024). [**Navigating the Landscape of Large Language Models: A Comprehensive Review and Analysis of Paradigms and Fine-Tuning Strategies**](https://arxiv.org/pdf/2404.09022.pdf)
 
-### TODO
-- **IA³** (Input-Aware Adapter Adjustment)
+### **IA³** (Infused Adapter by Inhibiting and Amplifying Inner Activations)
 
-### Características principales
+IA³ introduce vectores aprendidos que reescalan claves, valores y activaciones internas en módulos específicos del
+modelo (atención y feedforward), logrando una adaptación eficiente sin alterar los pesos base del modelo, ideal para
+entornos restringidos computacionalmente.
+
+![image](docs/img/ia3_figure.png)
+- Liu, Haokun and Tam, Derek and Muqeeth, Mohammed and Mohta, Jay and Huang, Tenghao and Bansal, Mohit and Raffel, Colin (2022) [**Few-shot Parameter-Efficient Fine-tuning is Better and Cheaper than In-Context Learning**](https://arxiv.org/pdf/2205.05638).
+
+## Características principales
 
 1. **Entorno aislado**: La imagen Docker incluye Python 3.x y todas las librerías (Transformers, Accelerate, BitsAndBytes, PEFT, etc.) necesarias para correr tus scripts de fine-tuning.
 
