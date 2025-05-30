@@ -152,7 +152,7 @@ def load_training_arguments_from_json(json_path: str, output_dir: str):
 
 def start_benchmark_metrics():
     nvmlInit()
-    handle = nvmlDeviceGetHandleByIndex(0)  # GPU 0
+    handle = nvmlDeviceGetHandleByIndex(0)
     process = psutil.Process()
 
     metrics = {
@@ -162,18 +162,30 @@ def start_benchmark_metrics():
         "gpu_handle": handle,
         "gpu_util_samples": [],
         "gpu_mem_samples": [],
+        "cpu_util_samples": [],
+        "ram_total_used_mb_samples": [],
         "stop_thread": False,
     }
 
-    def gpu_sampler():
+    def sampler():
         while not metrics["stop_thread"]:
+            # GPU
             util = nvmlDeviceGetUtilizationRates(handle).gpu
             mem = nvmlDeviceGetMemoryInfo(handle).used / (1024 ** 2)  # MB
             metrics["gpu_util_samples"].append(util)
             metrics["gpu_mem_samples"].append(mem)
-            time.sleep(1)  # toma una muestra cada 1 segundo
 
-    metrics["thread"] = threading.Thread(target=gpu_sampler)
+            # CPU (porcentaje de uso del sistema)
+            cpu_util = psutil.cpu_percent(interval=None)
+            metrics["cpu_util_samples"].append(cpu_util)
+
+            # RAM (uso total del sistema en MB)
+            ram_used_mb = psutil.virtual_memory().used / (1024 ** 2)
+            metrics["ram_total_used_mb_samples"].append(ram_used_mb)
+
+            time.sleep(1)
+
+    metrics["thread"] = threading.Thread(target=sampler)
     metrics["thread"].start()
 
     return metrics
@@ -192,21 +204,28 @@ def stop_benchmark_metrics(metrics, output_dir):
     ram_used = end_ram - metrics["start_ram_mb"]
     cpu_percent = process.cpu_percent(interval=1.0)
 
-    # Calcular promedios
-    gpu_util_samples = metrics["gpu_util_samples"]
-    gpu_mem_samples = metrics["gpu_mem_samples"]
+    # Listas de muestras
+    gpu_util = metrics["gpu_util_samples"]
+    gpu_mem = metrics["gpu_mem_samples"]
+    cpu_util = metrics["cpu_util_samples"]
+    ram_total_used = metrics["ram_total_used_mb_samples"]
 
-    avg_gpu_util = sum(gpu_util_samples) / len(gpu_util_samples) if gpu_util_samples else 0
-    avg_gpu_mem = sum(gpu_mem_samples) / len(gpu_mem_samples) if gpu_mem_samples else 0
+    # Cálculos promedio
+    avg_gpu_util = sum(gpu_util) / len(gpu_util) if gpu_util else 0
+    avg_gpu_mem = sum(gpu_mem) / len(gpu_mem) if gpu_mem else 0
+    avg_cpu_util = sum(cpu_util) / len(cpu_util) if cpu_util else 0
+    avg_ram_total_used = sum(ram_total_used) / len(ram_total_used) if ram_total_used else 0
 
     nvmlShutdown()
 
     results = {
         "training_time_sec": round(training_duration, 2),
-        "ram_used_mb": round(ram_used, 2),
-        "cpu_percent": round(cpu_percent, 2),
+        "process_ram_used_mb": round(ram_used, 2),
+        "process_cpu_percent": round(cpu_percent, 2),
         "avg_gpu_memory_used_mb": round(avg_gpu_mem, 2),
-        "avg_gpu_utilization_percent": round(avg_gpu_util, 2)
+        "avg_gpu_utilization_percent": round(avg_gpu_util, 2),
+        "avg_cpu_utilization_percent": round(avg_cpu_util, 2),
+        "avg_system_ram_used_mb": round(avg_ram_total_used, 2)
     }
 
     print(results)
