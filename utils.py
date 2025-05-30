@@ -80,7 +80,7 @@ def load_env_vars() -> SimpleNamespace:
         )
         sys.exit(1)
 
-    print("✅ Variables de entorno cargadas:")
+    print("\n✅ Variables de entorno cargadas:")
     for key, value in loaded.items():
         if key in sensitive_keys and value:
             display_value = '*' * 8 + value[-4:]  # muestra últimos 4 caracteres
@@ -130,6 +130,7 @@ def load_model(model_name, hf_token, quantization_config = None):
     else:
         raise ValueError(f'Modelo no soportado: {model_name}')
 
+    print()
     if hasattr(model, "quantization_config"):
         print("✅ Modelo cargado con quantization_config → Esto es QLoRA (4-bit)")
     else:
@@ -143,7 +144,7 @@ def load_training_arguments_from_json(json_path: str, output_dir: str):
 
     config['output_dir'] = output_dir
 
-    print("✅ Training parameters")
+    print("\n✅ Training parameters")
     for key, value in config.items():
         print(f"{key} = {value} of type ({type(value)})")
 
