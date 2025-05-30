@@ -57,7 +57,7 @@ def _print_dataset_examples(dataset, split: str = "train", n: int = 5):
 
 def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
     # Dataset
-    print('Loading WikiSQL...')
+    print('\n✅ Loading WikiSQL...')
     raw = load_dataset(
         "Salesforce/wikisql",
         token=hf_token,
@@ -77,7 +77,7 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
         train_sample_size = int(train_total * ratio / 100)
         eval_sample_size  = int(eval_total  * ratio / 100)
 
-        print(f'Reducing dataset to {ratio}%')
+        print(f'\n✅ Reducing dataset to {ratio}%')
         print(f'Train samples: {train_sample_size}')
         print(f'Eval samples {eval_sample_size}')
 
