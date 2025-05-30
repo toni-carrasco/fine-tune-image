@@ -43,7 +43,7 @@ def parse_args():
         print('Error: Debe especificar el peft (lora, qlora, ia3, prefix)', file=sys.stderr)
         sys.exit(1)
 
-    print("\n==================================================")
+    print("\n\n✅ Entorno de ejecucion:")
     print("Versión de torch vision:", torchvision.__version__)
     print("Versión de torch:", torch.__version__)
     print("Versión de CUDA en torch:", torch.version.cuda)
@@ -51,32 +51,43 @@ def parse_args():
     print("Número de GPUs detectadas:", torch.cuda.device_count())
     print("LLM Model:", args.model)
     print("PEFT Mode:", args.peft)
-    print("==================================================\n")
 
     return args
 
 
 def load_env_vars() -> SimpleNamespace:
     specs = {
-        'hf_token':   ('HUGGINGFACE_TOKEN', None, True),
-        'debug_mode': ('DEBUG_MODE', 'false', False),
+        'hf_token':           ('HUGGINGFACE_TOKEN', None, True),
+        'debug_mode':         ('DEBUG_MODE', 'false', False),
         'dataset_size_ratio': ('DATASET_SIZE_RATIO', None, False)
     }
+
+    sensitive_keys = {'hf_token'}  # claves locales que deben enmascararse
     loaded = {}
     missing = []
+
     for local_name, (env_name, default, mandatory) in specs.items():
         value = os.getenv(env_name, default)
         if mandatory and (value is None or value == ''):
             missing.append(env_name)
         loaded[local_name] = value
+
     if missing:
         sys.stderr.write(
             'Error: faltan las siguientes variables de entorno obligatorias:\n'
             + '\n'.join(f'  - {name}' for name in missing) + '\n'
         )
         sys.exit(1)
-    return SimpleNamespace(**loaded)
 
+    print("✅ Variables de entorno cargadas:")
+    for key, value in loaded.items():
+        if key in sensitive_keys and value:
+            display_value = '*' * 8 + value[-4:]  # muestra últimos 4 caracteres
+        else:
+            display_value = value
+        print(f"  {key}: {display_value}")
+
+    return SimpleNamespace(**loaded)
 
 def get_model_config(model_name: str, peft: str) -> SimpleNamespace:
     if model_name == 'gpt-2':
@@ -131,10 +142,9 @@ def load_training_arguments_from_json(json_path: str, output_dir: str):
 
     config['output_dir'] = output_dir
 
-    print("\n=============== Training parameters ==============")
+    print("✅ Training parameters")
     for key, value in config.items():
         print(f"{key} = {value} of type ({type(value)})")
-    print("==================================================\n")
 
     return config
 
@@ -152,7 +162,7 @@ def start_benchmark_metrics():
     return metrics
 
 
-def stop_benchmark_metrics(metrics):
+def stop_benchmark_metrics(metrics, output_dir):
     end_time = time.time()
     training_duration = end_time - metrics["start_time"]
 
@@ -170,10 +180,21 @@ def stop_benchmark_metrics(metrics):
 
     nvmlShutdown()
 
-    return {
+    results = {
         "training_time_sec": round(training_duration, 2),
         "ram_used_mb": round(ram_used, 2),
         "cpu_percent": round(cpu_percent, 2),
         "gpu_memory_used_mb": round(gpu_memory_used, 2),
         "gpu_utilization_percent": round(gpu_util_percent, 2)
     }
+
+    print(results)
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    output_path = os.path.join(output_dir, "benchmark_results.json")
+    with open(output_path, "w") as f:
+        json.dump(results, f, indent=2)
+
+    return results
