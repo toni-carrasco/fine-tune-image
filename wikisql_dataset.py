@@ -19,6 +19,20 @@ def _preprocess_wikisql(tokenizer, batch):
     tokenized["labels"] = tokenized["input_ids"].copy()
     return tokenized
 
+def _print_markdown_table(records: List[Dict[str, Any]]) -> None:
+    # extrae cabeceras en orden de aparición
+    headers = list(records[0].keys())
+    # calcula ancho máximo de cada columna
+    widths = [max(len(str(r.get(h, ""))) for r in records + [dict(zip(headers, headers))]) for h in headers]
+    # cabecera
+    sep_header = "| " + " | ".join(h.ljust(widths[i]) for i,h in enumerate(headers)) + " |"
+    sep_line   = "|-" + "-|-".join("-"*w for w in widths) + "-|"
+    print(sep_header)
+    print(sep_line)
+    # filas
+    for r in records:
+        row = "| " + " | ".join(str(r.get(h, "")).ljust(widths[i]) for i,h in enumerate(headers)) + " |"
+        print(row)
 
 def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
     # Dataset
@@ -40,7 +54,7 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
             "columns": ", ".join(ex["table"]["header"]),
         })
 
-    print(rows)
+    _print_markdown_table(rows)
 
     dataset_size_ratio = float(dataset_size_ratio)
     if dataset_size_ratio is not None:
@@ -49,6 +63,10 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
 
         train_sample_size = int(train_total * dataset_size_ratio / 100)
         eval_sample_size  = int(eval_total  * dataset_size_ratio / 100)
+
+        print(f'Reducing dataset to {}%', dataset_size_ratio)
+        print(f'Train samples: {}', train_sample_size)
+        print(f'Eval samples {}', eval_sample_size)
 
         train_raw = raw["train"].shuffle(seed=42).select(range(train_sample_size))
         eval_raw  = raw["validation"].shuffle(seed=42).select(range(eval_sample_size))
