@@ -131,6 +131,4 @@ def load_training_arguments_from_json(json_path: str, output_dir: str):
         print(f"{key} = {value} of type ({type(value)})")
     print("==================================================\n")
 
-    sys.exit(1)
-
     return config
