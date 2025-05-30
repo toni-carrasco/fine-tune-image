@@ -178,7 +178,7 @@ def start_benchmark_metrics():
 
     return metrics
 
-def stop_benchmark_metrics(metrics):
+def stop_benchmark_metrics(metrics, output_dir):
     metrics["stop_thread"] = True
     metrics["thread"].join()
 
