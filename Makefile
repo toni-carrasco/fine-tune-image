@@ -1,4 +1,20 @@
-.PHONY: build train shell check-dir check-vars
+.PHONY: help build train shell check-dir check-vars
+
+# Default target: show help
+help:
+	@echo ""
+	@echo "Usage:"
+	@echo "  make <target> [VARIABLE=value]"
+	@echo ""
+	@echo "Targets:"
+	@echo "  build         - Construye la imagen Docker 'finetune-image'."
+	@echo "  train         - Ejecuta el entrenamiento dentro del contenedor (requiere PEFT y MODEL)."
+	@echo "                  Ejemplo: make train PEFT=lora MODEL=gpt-2"
+	@echo "  infer         - Ejecuta inferencia dentro del contenedor (requiere PEFT y MODEL)."
+	@echo "                  Ejemplo: make infer PEFT=lora MODEL=gpt-2"
+	@echo "  shell         - Inicia una shell interactiva en el contenedor."
+	@echo "  help          - Muestra esta ayuda."
+	@echo ""
 
 # Build Docker image
 build:
@@ -32,7 +48,7 @@ train: check-vars check-dir
 	docker run --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
-		-v ./training_configuration.json:/app/training_configuration.json
+		-v ./training_configuration.json:/app/training_configuration.json \
 		finetune-image python train.py --model $(MODEL) --peft $(PEFT)
 
 # Run the fine-tuning script with volume mount
