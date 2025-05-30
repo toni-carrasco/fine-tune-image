@@ -1,6 +1,5 @@
 import os
 import sys
-from typing import List, Dict, Any
 from datasets import load_dataset
 
 def _preprocess_wikisql(tokenizer, batch):
@@ -19,38 +18,23 @@ def _preprocess_wikisql(tokenizer, batch):
     tokenized["labels"] = tokenized["input_ids"].copy()
     return tokenized
 
-def _print_markdown_table(raw_dataset, split: str = "train", n: int = 5):
+def _print_dataset_examples(dataset, split: str = "train", n: int = 5):
     """
-    Selects `n` examples from `raw_dataset[split]`, builds rows,
-    and prints a Markdown table of question, SQL, table name & columns.
+    Prints n examples from the specified split of the WikiSQL dataset.
     """
-    # Take first `n` examples
-    examples = raw_dataset[split].select(range(n))
+    examples = dataset[split].shuffle(seed=42).select(range(n))
+    for idx, ex in enumerate(examples, 1):
+        table_name = ex["table"]["name"]
+        columns = ", ".join(ex["table"]["header"])
+        question = ex["question"]
+        hr_sql = ex["sql"]["human_readable"]
 
-    records = []
-    for ex in examples:
-        records.append({
-            "question":           ex["question"],
-            "human_readable_sql": ex["sql"]["human_readable"],
-            "table_name":         ex["table"]["name"],
-            "columns":            ", ".join(ex["table"]["header"]),
-        })
-
-    headers = ["question", "human_readable_sql", "table_name", "columns"]
-    # compute column widths
-    widths = [max(len(str(r[h])) for r in records + [{h: h}]) for h in headers]
-
-    # header line
-    header_line = "| " + " | ".join(h.ljust(widths[i]) for i, h in enumerate(headers)) + " |"
-    sep_line    = "|-" + "-|-".join("-" * widths[i] for i in range(len(headers))) + "-|"
-    print(header_line)
-    print(sep_line)
-
-    # rows
-    for r in records:
-        line = "| " + " | ".join(str(r[h]).ljust(widths[i]) for i, h in enumerate(headers)) + " |"
-        print(line)
-    print()
+        print(f"Example {idx}")
+        print(f"table:             {table_name}")
+        print(f"columns:           {columns}")
+        print(f"question:          {question}")
+        print(f"human_readable_sql:{hr_sql}")
+        print("-" * 80)
 
 def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
     # Dataset
@@ -61,18 +45,7 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
         trust_remote_code=True
     )
 
-    _print_markdown_table(raw, split="train", n=5)
-
-    rows = []
-    for ex in examples:
-        rows.append({
-            "question": ex["question"],
-            "human_readable_sql": ex["sql"]["human_readable"],
-            "table_name": ex["table"]["name"],
-            "columns": ", ".join(ex["table"]["header"]),
-        })
-
-   #_print_markdown_table(rows)
+    _print_dataset_examples(raw, split="train", n=5)
 
     if dataset_size_ratio is not None:
         ratio = float(dataset_size_ratio)
