@@ -2,7 +2,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
 from datasets import load_dataset
-from utils import {
+from utils import (
     parse_args,
     load_env_vars,
     get_model_config,
@@ -10,7 +10,7 @@ from utils import {
     load_training_arguments_from_json,
     start_benchmark_metrics,
     stop_benchmark_metrics
-}
+)
 
 
 def get_peft_model_with_lora_config(model_name, hf_token, target_modules, bnb_config):
