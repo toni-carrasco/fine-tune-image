@@ -142,10 +142,9 @@ def load_training_arguments_from_json(json_path: str, output_dir: str):
 
     config['output_dir'] = output_dir
 
-    print("\n=============== Training parameters ==============")
+    print("✅ Training parameters")
     for key, value in config.items():
         print(f"{key} = {value} of type ({type(value)})")
-    print("==================================================\n")
 
     return config
 
