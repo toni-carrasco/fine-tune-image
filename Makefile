@@ -47,6 +47,7 @@ train: check-vars check-dir
 	@echo "Running container finetune-image to train with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
 	docker run --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
+		-e DATASET_SAMPLE_SIZE \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
 		-v ./training_configuration.json:/app/training_configuration.json \
 		finetune-image python train.py --model $(MODEL) --peft $(PEFT)

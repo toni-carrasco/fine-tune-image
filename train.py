@@ -1,9 +1,8 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
-from datasets import load_dataset
 from utils import parse_args, load_env_vars, get_model_config, load_model, load_training_arguments_from_json
-
+from wikisql_dataset import get_wikisql_datasets
 
 def get_peft_model_with_lora_config(model_name, hf_token, target_modules, bnb_config):
     model = load_model(model_name, hf_token, bnb_config)
@@ -51,6 +50,7 @@ def main():
     config = get_model_config(args.model, args.peft)
     env = load_env_vars()
     hf_token = env.hf_token
+    dataset_sample_size = env.dataset_sample_size
     debug_mode = env.debug_mode.lower() in ('1', 'true', 'yes')
 
     training_config = load_training_arguments_from_json("training_configuration.json", config.output_dir)
@@ -83,20 +83,8 @@ def main():
         raise ValueError(f"Modo PEFT no soportado: {args.peft}")
 
     # Dataset
-    dataset = load_dataset('wikitext', 'wikitext-2-raw-v1')
-    train_subset = dataset['train'].select(range(500))
-    eval_subset = dataset['validation'].select(range(50))
-
-    def preprocess_function(batch):
-        tokenized = tokenizer(
-            batch['text'], truncation=True,
-            padding='max_length', max_length=512
-        )
-        tokenized['labels'] = tokenized['input_ids']
-        return tokenized
-
-    train_dataset = train_subset.map(preprocess_function, batched=True)
-    eval_dataset = eval_subset.map(preprocess_function, batched=True)
+    print(dataset_sample_size)
+    train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token)
 
     # Training args
     training_args = TrainingArguments(**training_config)
