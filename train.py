@@ -59,7 +59,7 @@ def main():
     config = get_model_config(args.model, args.peft)
     env = load_env_vars()
     hf_token = env.hf_token
-    dataset_sample_size = env.dataset_sample_size
+    dataset_size_ratio = env.dataset_size_ratio
     debug_mode = env.debug_mode.lower() in ('1', 'true', 'yes')
 
     training_config = load_training_arguments_from_json("training_configuration.json", config.output_dir)
@@ -92,8 +92,8 @@ def main():
         raise ValueError(f"Modo PEFT no soportado: {args.peft}")
 
     # Dataset
-    if dataset_sample_size is not None:
-        train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_sample_size)
+    if dataset_size_ratio is not None:
+        train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio)
     else:
         train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token)
 
