@@ -1,8 +1,10 @@
 import torch
+import psutil
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
 from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
 from datasets import load_dataset
 from utils import parse_args, load_env_vars, get_model_config, load_model, load_training_arguments_from_json
+from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex, nvmlDeviceGetMemoryInfo, nvmlShutdown
 
 
 def get_peft_model_with_lora_config(model_name, hf_token, target_modules, bnb_config):
@@ -106,7 +108,35 @@ def main():
         train_dataset=train_dataset,
         eval_dataset=eval_dataset
     )
-    trainer.train()
+
+    ### Start metrics
+    process = psutil.Process()
+    nvmlInit()
+    gpu_handle = nvmlDeviceGetHandleByIndex(0)
+    start_ram = process.memory_info().rss / (1024 ** 2)  # MB
+    start_time = time.time()
+
+    trainer.train() # start train process
+
+    ### Stop metrics
+    end_time = time.time()
+    training_duration = end_time - start_time
+    end_ram = process.memory_info().rss / (1024 ** 2)
+    cpu_percent = process.cpu_percent(interval=1.0)
+    gpu_mem_info = nvmlDeviceGetMemoryInfo(gpu_handle)
+    gpu_memory_used = gpu_mem_info.used / (1024 ** 2)  # MB
+    nvmlShutdown()
+
+    ### Store metrics
+    metrics = {
+        "peft": peft_type,
+        "model": model_name,
+        "training_time_sec": round(training_duration, 2),
+        "gpu_memory_used_mb": round(gpu_memory_used, 2),
+        "ram_used_mb": round(end_ram - start_ram, 2),
+        "cpu_percent": round(cpu_percent, 2)
+    }
+    print(metrics)
 
     # Save adapters
     peft_model.save_pretrained(config.adapter_dir)
