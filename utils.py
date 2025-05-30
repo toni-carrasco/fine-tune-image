@@ -60,6 +60,7 @@ def load_env_vars() -> SimpleNamespace:
     specs = {
         'hf_token':   ('HUGGINGFACE_TOKEN', None, True),
         'debug_mode': ('DEBUG_MODE', 'false', False),
+        'dataset_sample_size': ('DATASET_SAMPLE_SIZE', None, False)
     }
     loaded = {}
     missing = []

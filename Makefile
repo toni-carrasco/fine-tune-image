@@ -30,7 +30,7 @@ IMAGE_NAME := $(shell cat .image_name 2>/dev/null || echo finetune-image)
 # Build Docker image
 build: define-image-name
 	@echo "Building Docker image $(IMAGE_NAME)..."
-	docker build -t $(IMAGE_NAME) .
+	sudo docker build -t $(IMAGE_NAME) .
 
 # Ensure output directory exists and is writable
 check-dir:
@@ -56,8 +56,9 @@ check-vars:
 # Run the fine-tuning script with volume mount
 train: define-image-name check-vars check-dir
 	@echo "Running container $(IMAGE_NAME) to train with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
-	docker run --rm --gpus all \
+	sudo -E docker run --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
+		-e DATASET_SAMPLE_SIZE \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
 		-v ./training_configuration.json:/app/training_configuration.json \
 		$(IMAGE_NAME) python train.py --model $(MODEL) --peft $(PEFT)
@@ -65,7 +66,7 @@ train: define-image-name check-vars check-dir
 # Run the fine-tuning script with volume mount
 infer: define-image-name check-vars check-dir
 	@echo "Running container $(IMAGE_NAME) to infer with PEFT=$(PEFT) and MODEL=$(MODEL) on all GPUs..."
-	docker run -it --rm --gpus all \
+	sudo -E docker run -it --rm --gpus all \
 		-e HUGGINGFACE_TOKEN \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
 		$(IMAGE_NAME) python infer.py --model $(MODEL) --peft $(PEFT)
@@ -73,7 +74,7 @@ infer: define-image-name check-vars check-dir
 # Start a bash shell inside the container for debugging or exploration
 shell: define-image-name check-dir
 	@echo "Starting interactive shell in $(IMAGE_NAME)..."
-	docker run -it --rm --gpus all \
+	sudo -E docker run -it --rm --gpus all \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
 		--entrypoint /bin/bash \
 		$(IMAGE_NAME)
