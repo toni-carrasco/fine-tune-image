@@ -1,66 +1,86 @@
 import os
-import sys
 from datasets import load_dataset
+from transformers import PreTrainedTokenizerBase
+from typing import Tuple
 
-PROMPT_MAX_LENGTH = 96
-SQL_MAX_LENGTH = 40
+# Constantes recomendadas (según estadísticas calculadas previamente)
+PROMPT_MAX = 96    # cubre P99 de “Question + Columns + SQL:”
+SQL_MAX    = 40    # cubre P99 de “human_readable_sql”
+FULL_MAX   = 128   # redondeando PROMPT_MAX+SQL_MAX (96+40=136) a múltiplo de 8
 
-def _preprocess_wikisql(tokenizer, batch):
-    # Extraemos la pregunta, las columnas de la tabla y la query SQL
+def _preprocess_wikisql(
+        tokenizer: PreTrainedTokenizerBase,
+        batch: dict
+) -> dict:
+    """
+    Para cada ejemplo en el batch:
+      1) Construye el prompt: "Question: {q}\nColumns: {cols}\nSQL:"
+      2) Obtiene la query en SQL (human_readable_sql)
+      3) Concatena prompt + " " + sql en una sola cadena
+      4) Tokeniza la cadena completa a FULL_MAX tokens
+      5) Genera labels = input_ids.copy() y enmascara (-100) la parte del prompt
+    El resultado:
+      - input_ids: (batch_size, FULL_MAX)
+      - attention_mask: (batch_size, FULL_MAX)
+      - labels: (batch_size, FULL_MAX) con -100 en los primeros tokens del prompt.
+    """
     questions = batch["question"]
     columns   = [", ".join(tbl["header"]) for tbl in batch["table"]]
-    targets   = [entry["human_readable"] for entry in batch["sql"]]
+    sqls      = [entry["human_readable"] for entry in batch["sql"]]
 
-    # Construimos el prompt
-    inputs = []
+    prompts = []
     for q, cols in zip(questions, columns):
-        # definimos el prompt de entrada
-        inputs.append(
-            f"Question: {q}\n"
-            f"Columns: {cols}\n"
-            f"SQL:"
-        )
+        prompt = f"Question: {q}\nColumns: {cols}\nSQL:"
+        prompts.append(prompt)
 
-    # Tokenizamos los prompts truncando y rellenando a 256
-    tokenized = tokenizer(
-        inputs,
+    # 1) Construimos la lista de cadenas completas: prompt + " " + sql
+    full_texts = [prompt + " " + sql for prompt, sql in zip(prompts, sqls)]
+
+    # 2) Tokenizamos la cadena completa con truncación/padding a FULL_MAX
+    tok_full = tokenizer(
+        full_texts,
         truncation=True,
         padding="max_length",
-        max_length=PROMPT_MAX_LENGTH
+        max_length=FULL_MAX
     )
+    input_ids      = tok_full["input_ids"]       # forma: (batch_size, FULL_MAX)
+    attention_mask = tok_full["attention_mask"]   # forma: (batch_size, FULL_MAX)
 
-    # Tokenizamos las consultas SQL como etiquetas truncando y rellenando a 256
-    # las etiquetas son lo que queremos que salga tras el “SQL:”
-    labels = tokenizer(
-        targets,
-        truncation=True,
-        padding="max_length",
-        max_length=SQL_MAX_LENGTH
-    ).input_ids
+    # 3) Creamos los labels a partir de input_ids (copiamos para no modificar input_ids directamente)
+    labels = [ids.copy() for ids in input_ids]   # lista de listas, cada una de longitud FULL_MAX
 
-    tokenized["labels"] = labels
-    return tokenized
+    # 4) Para cada ejemplo, hallamos cuántos tokens ocupa el prompt en la tokenización
+    #    tokenizamos solo el prompt (sin la parte SQL) para contar longitud de tokens
+    for i, prompt in enumerate(prompts):
+        prompt_ids = tokenizer.encode(
+            prompt,
+            add_special_tokens=False,
+            truncation=True,
+            max_length=PROMPT_MAX
+        )
+        len_prompt = len(prompt_ids)  # número de tokens del prompt
 
+        # 5) Asignamos -100 en positions [0 .. len_prompt-1] para no computar pérdida en el prompt
+        for j in range(len_prompt):
+            labels[i][j] = -100
+
+    # 6) Guardamos labels en el diccionario resultante
+    tok_full["labels"] = labels
+
+    return tok_full  # contiene: input_ids, attention_mask, labels
 
 def _print_dataset_examples(dataset, split: str = "train", n: int = 5):
     """
-    Prints n examples from the specified split of the WikiSQL dataset.
+    Imprime n ejemplos (solo para inspección), mostrando: table, columns, question, human_readable_sql.
     """
-    all_examples = dataset[split].shuffle(seed=42)
-    filtered = [
-        ex for ex in all_examples
-        if ex.get("table")
-           and ex["table"].get("name")
-           and ex["table"]["name"].strip() != ""
-    ]
-    examples = filtered[:n]
+    examples = dataset[split].shuffle(seed=42).select(range(n))
 
     print("\nDataset examples:")
     for ex in examples:
-        table_name = ex["table"]["name"]
-        columns = ", ".join(ex["table"]["header"])
-        question = ex["question"]
-        hr_sql = ex["sql"]["human_readable"]
+        table_name = ex["table"]["id"]  # no hay 'name', el ID es el identificador de la tabla
+        columns    = ", ".join(ex["table"]["header"])
+        question   = ex["question"]
+        hr_sql     = ex["sql"]["human_readable"]
 
         print(f"table:              {table_name}")
         print(f"columns:            {columns}")
@@ -68,8 +88,21 @@ def _print_dataset_examples(dataset, split: str = "train", n: int = 5):
         print(f"human_readable_sql: {hr_sql}")
         print("-" * 80)
 
-def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
-    # Dataset
+def get_wikisql_datasets(
+        tokenizer: PreTrainedTokenizerBase,
+        hf_token: str,
+        dataset_size_ratio: float = None
+) -> Tuple:
+    """
+    1) Carga WikiSQL (train + validation).
+    2) Muestra 5 ejemplos por consola (_print_dataset_examples).
+    3) Si se pidió muestreo (dataset_size_ratio), reduce a ese % ambos splits.
+    4) Mapea cada split con _preprocess_wikisql para obtener:
+         - input_ids  (batch_size, FULL_MAX)
+         - attention_mask (batch_size, FULL_MAX)
+         - labels     (batch_size, FULL_MAX)  con -100 en la parte del prompt.
+    5) Devuelve (train_dataset, eval_dataset).
+    """
     print('\n✅ Loading WikiSQL...')
     raw = load_dataset(
         "Salesforce/wikisql",
@@ -77,23 +110,25 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
         trust_remote_code=True
     )
 
+    # 1) Muestra ejemplos
     _print_dataset_examples(raw, split="train", n=5)
 
+    # 2) Muestreo (si se pidió)
     if dataset_size_ratio is not None:
         ratio = float(dataset_size_ratio)
         if not (0 < ratio <= 100):
             raise ValueError("dataset_size_ratio must be between 0 and 100")
 
         train_total = len(raw["train"])
-        eval_total = len(raw["validation"])
+        eval_total  = len(raw["validation"])
 
         train_sample_size = int(train_total * ratio / 100)
         eval_sample_size  = int(eval_total  * ratio / 100)
 
         if ratio < 100:
-            print(f'Reducing dataset to {ratio}%')
-            print(f'Train samples: {train_sample_size}')
-            print(f'Eval samples {eval_sample_size}')
+            print(f"\n✅ Reducing dataset to {ratio}%")
+            print(f"Train samples: {train_sample_size}")
+            print(f"Eval samples:  {eval_sample_size}")
 
         train_raw = raw["train"].shuffle(seed=42).select(range(train_sample_size))
         eval_raw  = raw["validation"].shuffle(seed=42).select(range(eval_sample_size))
@@ -101,6 +136,7 @@ def get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio=None):
         train_raw = raw["train"]
         eval_raw  = raw["validation"]
 
+    # 3) Aplica map con nuestra función de preprocess
     train_dataset = train_raw.map(
         lambda batch: _preprocess_wikisql(tokenizer, batch),
         batched=True,
