@@ -111,7 +111,7 @@ def get_wikisql_datasets(
     )
 
     # Printa n ejemplos random
-    _print_dataset_examples(raw, split="train", n=5)
+    _print_dataset_examples(raw)
 
     # Muestreo (si env variable DATASET_SIZE_RATIO está definida)
     if dataset_size_ratio is not None:
