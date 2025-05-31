@@ -130,11 +130,10 @@ def load_model(model_name, hf_token, quantization_config = None):
     else:
         raise ValueError(f'Modelo no soportado: {model_name}')
 
-    print()
     if hasattr(model, "quantization_config"):
-        print("✅ Modelo cargado con quantization_config → Esto es QLoRA (4-bit)")
+        print("\n✅ Modelo cargado con quantization_config → Esto es QLoRA (4-bit)")
     else:
-        print("✅ Modelo cargado sin quantization_config")
+        print("\n✅ Modelo cargado sin quantization_config")
 
     return model
 
