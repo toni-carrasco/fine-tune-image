@@ -2,11 +2,16 @@ import os
 import sys
 from datasets import load_dataset
 
+PROMPT_MAX_LENGTH = 96
+SQL_MAX_LENGTH = 40
+
 def _preprocess_wikisql(tokenizer, batch):
+    # Extraemos la pregunta, las columnas de la tabla y la query SQL
     questions = batch["question"]
     columns   = [", ".join(tbl["header"]) for tbl in batch["table"]]
     targets   = [entry["human_readable"] for entry in batch["sql"]]
 
+    # Construimos el prompt
     inputs = []
     for q, cols in zip(questions, columns):
         # definimos el prompt de entrada
@@ -16,19 +21,21 @@ def _preprocess_wikisql(tokenizer, batch):
             f"SQL:"
         )
 
+    # Tokenizamos los prompts truncando y rellenando a 256
     tokenized = tokenizer(
         inputs,
         truncation=True,
         padding="max_length",
-        max_length=256
+        max_length=PROMPT_MAX_LENGTH
     )
 
+    # Tokenizamos las consultas SQL como etiquetas truncando y rellenando a 256
     # las etiquetas son lo que queremos que salga tras el “SQL:”
     labels = tokenizer(
         targets,
         truncation=True,
         padding="max_length",
-        max_length=256
+        max_length=SQL_MAX_LENGTH
     ).input_ids
 
     tokenized["labels"] = labels
