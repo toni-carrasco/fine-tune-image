@@ -39,10 +39,16 @@ def _print_dataset_examples(dataset, split: str = "train", n: int = 5):
     """
     Prints n examples from the specified split of the WikiSQL dataset.
     """
-    examples = dataset[split].select(range(n))
+    all_examples = dataset[split].shuffle(seed=42)
+    filtered = [
+        ex for ex in all_examples
+        if ex.get("table")
+           and ex["table"].get("name")
+           and ex["table"]["name"].strip() != ""
+    ]
+    examples = filtered[:n]
 
-    print()
-    print("Dataset examples:")
+    print("\nDataset examples:")
     for ex in examples:
         table_name = ex["table"]["name"]
         columns = ", ".join(ex["table"]["header"])
