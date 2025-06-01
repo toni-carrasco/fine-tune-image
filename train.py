@@ -1,5 +1,6 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig, EarlyStoppingCallback
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig, \
+    EarlyStoppingCallback, TrainerCallback
 from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
 from wikisql_dataset import get_wikisql_datasets
 from utils import (
@@ -11,6 +12,21 @@ from utils import (
     start_benchmark_metrics,
     stop_benchmark_metrics
 )
+
+
+class StepEvalCallback(TrainerCallback):
+    """
+    A callback that tells Trainer to run .evaluate() every eval_steps.
+    """
+
+    def __init__(self, eval_steps: int):
+        self.eval_steps = eval_steps
+
+    def on_step_end(self, args, state, control, **kwargs):
+        # Whenever global_step is a multiple of eval_steps, trigger eval
+        if state.global_step % self.eval_steps == 0 and state.global_step > 0:
+            control.should_evaluate = True
+        return control
 
 
 def get_peft_model_with_lora_config(model_name, hf_token, target_modules, bnb_config):
@@ -97,14 +113,19 @@ def main():
     # Training args
     training_args = TrainingArguments(**training_config)
     early_stopping = EarlyStoppingCallback(
-        early_stopping_patience=3      # Espera 3 evaluaciones sin mejora
+        early_stopping_patience=3,  # Espera 3 evaluaciones sin mejora
+        early_stopping_threshold=0.0
     )
+    eval_steps = training_config.pop("eval_steps", 100)
     trainer = Trainer(
         model=peft_model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        callbacks=[early_stopping],
+        callbacks=[
+            StepEvalCallback(eval_steps),
+            early_stopping
+        ],
     )
 
     metrics = start_benchmark_metrics()
