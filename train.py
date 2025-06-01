@@ -23,7 +23,7 @@ def get_peft_model_with_qlora_config(model_name, hf_token, config):
         bnb_4bit_use_double_quant=peft_config.pop("bnb_4bit_use_double_quant", True),
         bnb_4bit_compute_dtype=torch.float16
     )
-    return get_peft_model_with_lora_config(model_name, hf_token, config.target_modules, bnb_config)
+    return get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config)
 
 def get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config):
     peft_config = load_peft_arguments_from_json("peft_lora_configuration.json", config.output_dir)
