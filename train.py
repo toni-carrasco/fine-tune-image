@@ -109,12 +109,14 @@ def main():
     # Dataset
     train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio)
 
+    eval_steps = training_config.pop("eval_steps", 100)
+    training_config["metric_for_best_model"] = "loss"
+    training_config["greater_is_better"] = False
+
     # Training args
     training_args = TrainingArguments(**training_config)
 
-    eval_steps = training_config.pop("eval_steps", 100)
     step_eval_cb = StepEvalCallback(eval_steps)
-
     early_stopping_cb = EarlyStoppingCallback(
         early_stopping_patience=3,  # Espera 3 evaluaciones sin mejora
         early_stopping_threshold=0.0

@@ -10,7 +10,6 @@
   "overwrite_output_dir": true,
   "logging_strategy": "steps",
   "logging_steps": 100,
-  "eval_steps": 100,
   "num_train_epochs": 10,
   "learning_rate": 5e-5,
   "report_to": "none",
