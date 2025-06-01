@@ -36,6 +36,10 @@ COPY train.py .
 COPY infer.py .
 COPY utils.py .
 COPY training_configuration.json .
+COPY peft_ia3_configuration.json .
+COPY peft_lora_configuration.json .
+COPY peft_prefix_configuration.json .
+COPY peft_qlora_configuration.json .
 COPY wikisql_dataset.py .
 COPY callbacks.py .
 
