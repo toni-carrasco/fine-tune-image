@@ -37,6 +37,7 @@ COPY infer.py .
 COPY utils.py .
 COPY training_configuration.json .
 COPY wikisql_dataset.py .
+COPY callbacks.py .
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
