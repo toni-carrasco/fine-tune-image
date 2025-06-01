@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
       --index-url https://download.pytorch.org/whl/cu126
 
 RUN pip install --no-cache-dir \
-      transformers \
+      transformers==4.39.3 \
       datasets \
       accelerate \
       sentencepiece \
