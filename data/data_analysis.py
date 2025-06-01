@@ -74,7 +74,7 @@ def compute_lengths(model_name: str, split: str = "train"):
     sql_mean      = float(sql_lengths.mean())
 
     # 7) Imprimir resultados
-    print(f"\n=== Estadísticas para split «{split}» de WikiSQL ===")
+    print(f"\n=== Estadísticas para split «{split}» de WikiSQL con {model_name} ===")
     print("➜ PROMPT («Question + Columns + SQL:»)")
     print(f"   Máximo tokens:      {prompt_max}")
     print(f"   Percentil 99 (P99): {prompt_p99}")
@@ -108,5 +108,9 @@ def compute_lengths(model_name: str, split: str = "train"):
 
 if __name__ == "__main__":
     MODEL_NAME = "gpt2"
-    stats_train = compute_lengths(MODEL_NAME, split="train")
-    stats_val   = compute_lengths(MODEL_NAME, split="validation")
+    compute_lengths(MODEL_NAME, split="train")
+    compute_lengths(MODEL_NAME, split="validation")
+
+    MODEL_NAME = "meta-llama/Llama-2-7b-hf"
+    compute_lengths(MODEL_NAME, split="train")
+    compute_lengths(MODEL_NAME, split="validation")
