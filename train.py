@@ -23,7 +23,6 @@ class StepEvalCallback(TrainerCallback):
         self.eval_steps = eval_steps
 
     def on_step_end(self, args, state, control, **kwargs):
-        # Whenever global_step is a multiple of eval_steps, trigger eval
         if state.global_step % self.eval_steps == 0 and state.global_step > 0:
             control.should_evaluate = True
         return control
@@ -112,19 +111,23 @@ def main():
 
     # Training args
     training_args = TrainingArguments(**training_config)
-    early_stopping = EarlyStoppingCallback(
+
+    eval_steps = training_config.pop("eval_steps", 100)
+    step_eval_cb = StepEvalCallback(eval_steps)
+
+    early_stopping_cb = EarlyStoppingCallback(
         early_stopping_patience=3,  # Espera 3 evaluaciones sin mejora
         early_stopping_threshold=0.0
     )
-    eval_steps = training_config.pop("eval_steps", 100)
+
     trainer = Trainer(
         model=peft_model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         callbacks=[
-            StepEvalCallback(eval_steps),
-            early_stopping
+            step_eval_cb,
+            early_stopping_cb
         ],
     )
 
