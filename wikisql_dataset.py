@@ -1,12 +1,23 @@
 import os
 from datasets import load_dataset
-from transformers import PreTrainedTokenizerBase
+from transformers import PreTrainedTokenizerBase, AutoTokenizer
 from typing import Tuple
 
 # Constantes recomendadas (según estadísticas calculadas previamente)
 PROMPT_MAX = 96    # cubre P99 de “Question + Columns + SQL:”
 SQL_MAX    = 40    # cubre P99 de “human_readable_sql”
 FULL_MAX   = 128   # redondeando PROMPT_MAX+SQL_MAX (96+40=136) a múltiplo de 8
+
+def get_tokenizer(hf_token, config):
+    tokenizer = AutoTokenizer.from_pretrained(
+        config.hf_name,
+        use_fast=config.use_fast_tokenizer,
+        token=hf_token
+    )
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.pad_token_id = tokenizer.eos_token_id
+
+    return tokenizer
 
 def _preprocess_wikisql(
         tokenizer: PreTrainedTokenizerBase,
