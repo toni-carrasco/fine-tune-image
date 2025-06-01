@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig, EarlyStoppingCallback
 from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
 from wikisql_dataset import get_wikisql_datasets
 from utils import (
@@ -96,11 +96,15 @@ def main():
 
     # Training args
     training_args = TrainingArguments(**training_config)
+    early_stopping = EarlyStoppingCallback(
+        early_stopping_patience=3      # Espera 3 evaluaciones sin mejora
+    )
     trainer = Trainer(
         model=peft_model,
         args=training_args,
         train_dataset=train_dataset,
-        eval_dataset=eval_dataset
+        eval_dataset=eval_dataset,
+        callbacks=[early_stopping],
     )
 
     metrics = start_benchmark_metrics()
