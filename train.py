@@ -1,6 +1,5 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig, \
-    EarlyStoppingCallback, TrainerCallback
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig, EvalPrediction, EarlyStoppingCallback, TrainerCallback
 from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
 from wikisql_dataset import get_wikisql_datasets
 from utils import (
@@ -14,17 +13,57 @@ from utils import (
 )
 
 
-class StepEvalCallback(TrainerCallback):
+class StepEvalAndEarlyStopCallback(TrainerCallback):
     """
-    A callback that tells Trainer to run .evaluate() every eval_steps.
+    Callback que:
+      1) Cada eval_steps pasos marca should_evaluate = True para llamar a .evaluate().
+      2) Tras cada evaluate, compara la pérdida de validación con la mejor encontrada.
+         - Si mejora (lower loss), la guarda y reinicia el contador de paciencia.
+         - Si no mejora, incrementa el contador. Cuando alcance `patience`, escribe should_training_stop=True.
     """
-
-    def __init__(self, eval_steps: int):
+    def __init__(self, eval_steps: int, patience: int = 2):
         self.eval_steps = eval_steps
+        self.patience = patience
+
+        # Nombres internos para trackear
+        self.best_loss = float("inf")
+        self.num_bad_steps = 0  # cuántas evaluaciones consecutivas sin mejora
 
     def on_step_end(self, args, state, control, **kwargs):
+        """
+        Se llama justo después de cada paso de entrenamiento. Si global_step % eval_steps == 0,
+        indicamos a Trainer que ejecute evaluate() en vez de continuar entrenando.
+        """
         if state.global_step % self.eval_steps == 0 and state.global_step > 0:
             control.should_evaluate = True
+        return control
+
+    def on_evaluate(self, args, state, control, metrics=None, **kwargs):
+        """
+        Se llama justo después de Trainer.evaluate(). Aquí `metrics` contiene
+        la pérdida (key "eval_loss") y otras métricas. Comparamos la pérdida ...
+        """
+        if metrics is None:
+            return control
+
+        # Nuevamente, el Trainer almacena la pérdida bajo "eval_loss"
+        current_loss = metrics.get("eval_loss")
+
+        if current_loss is None:
+            # Si no hay "eval_loss", no hacemos nada
+            return control
+
+        # Compara con la mejor pérdida hasta ahora
+        if current_loss < self.best_loss:
+            self.best_loss = current_loss
+            self.num_bad_steps = 0
+        else:
+            self.num_bad_steps += 1
+
+        # Si hemos superado la paciencia, solicitamos detener el entrenamiento
+        if self.num_bad_steps >= self.patience:
+            control.should_training_stop = True
+
         return control
 
 
@@ -109,30 +148,18 @@ def main():
     # Dataset
     train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio)
 
-    eval_steps = training_config.pop("eval_steps", 100)
-    training_config["metric_for_best_model"] = "loss"
-    training_config["greater_is_better"] = False
-    training_config["load_best_model_at_end"] = True
-    training_config["evaluation_strategy"] = "steps"
-
     # Training args
     training_args = TrainingArguments(**training_config)
 
-    step_eval_cb = StepEvalCallback(eval_steps)
-    early_stopping_cb = EarlyStoppingCallback(
-        early_stopping_patience=3,  # Espera 3 evaluaciones sin mejora
-        early_stopping_threshold=0.0
-    )
+    eval_steps = training_config.pop("eval_steps", 100)
+    step_eval_and_early = StepEvalAndEarlyStopCallback(eval_steps=eval_steps, patience=2)
 
     trainer = Trainer(
         model=peft_model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        callbacks=[
-            step_eval_cb,
-            early_stopping_cb
-        ],
+        callbacks=[step_eval_and_early],
     )
 
     metrics = start_benchmark_metrics()
