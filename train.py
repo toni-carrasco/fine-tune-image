@@ -112,6 +112,7 @@ def main():
     eval_steps = training_config.pop("eval_steps", 100)
     training_config["metric_for_best_model"] = "loss"
     training_config["greater_is_better"] = False
+    training_config["load_best_model_at_end"] = True
 
     # Training args
     training_args = TrainingArguments(**training_config)
