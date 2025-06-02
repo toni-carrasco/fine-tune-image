@@ -32,7 +32,7 @@ RUN pip install --no-cache-dir \
 
 RUN pip install --no-cache-dir git+https://github.com/huggingface/peft.git
 
-COPY configs/* .
+COPY configs/ /app/configs
 COPY src/* .
 
 ENV NVIDIA_VISIBLE_DEVICES=all

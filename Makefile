@@ -59,7 +59,7 @@ train: define-image-name check-vars check-dir
 		-e HUGGINGFACE_TOKEN \
 		-e DATASET_SIZE_RATIO \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
-		-v ./training_configuration.json:/app/training_configuration.json \
+		-v ./configs:/app/configs \
 		$$IMAGE_NAME python train.py --model $(MODEL) --peft $(PEFT)
 
 # Infer
@@ -77,5 +77,7 @@ shell: define-image-name check-dir
 	echo "Starting interactive shell in $$IMAGE_NAME..."; \
 	sudo -E docker run -it --rm --gpus all \
 		-v $$HOME/fine-tune-outputs:/app/outputs \
+		-v ./configs:/app/configs \
 		--entrypoint /bin/bash \
 		$$IMAGE_NAME
+
