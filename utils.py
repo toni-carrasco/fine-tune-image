@@ -149,6 +149,17 @@ def load_training_arguments_from_json(json_path: str, output_dir: str):
 
     return config
 
+def load_peft_arguments_from_json(json_path: str, output_dir: str):
+    with open(json_path, 'r') as f:
+        config = json.load(f)
+
+    config['output_dir'] = output_dir
+
+    print("\n✅ PEFT parameters")
+    for key, value in config.items():
+        print(f"{key} = {value} of type ({type(value)})")
+
+    return config
 
 def start_benchmark_metrics():
     nvmlInit()
