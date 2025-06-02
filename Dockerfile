@@ -32,16 +32,8 @@ RUN pip install --no-cache-dir \
 
 RUN pip install --no-cache-dir git+https://github.com/huggingface/peft.git
 
-COPY train.py .
-COPY infer.py .
-COPY utils.py .
-COPY training_configuration.json .
-COPY peft_ia3_configuration.json .
-COPY peft_lora_configuration.json .
-COPY peft_prefix_configuration.json .
-COPY peft_qlora_configuration.json .
-COPY wikisql_dataset.py .
-COPY callbacks.py .
+COPY configs/* .
+COPY src/* .
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
