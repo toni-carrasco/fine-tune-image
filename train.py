@@ -1,7 +1,7 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer, BitsAndBytesConfig, EvalPrediction
+from transformers import AutoModelForCausalLM, TrainingArguments, Trainer, BitsAndBytesConfig, EvalPrediction
 from peft import LoraConfig, IA3Config, PrefixTuningConfig, PeftModel, get_peft_model
-from wikisql_dataset import get_wikisql_datasets
+from wikisql_dataset import get_wikisql_datasets, get_tokenizer
 from utils import (
     parse_args,
     load_env_vars,
@@ -80,13 +80,7 @@ def main():
     training_config = load_training_arguments_from_json("training_configuration.json", config.output_dir)
 
     # Tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(
-        config.hf_name,
-        use_fast=config.use_fast_tokenizer,
-        token=hf_token
-    )
-    tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.pad_token_id = tokenizer.eos_token_id
+    tokenizer = get_tokenizer(hf_token, config)
 
     bnb_config = None
     if args.peft == "qlora":
