@@ -239,6 +239,8 @@ def stop_benchmark_metrics(metrics, output_dir):
         "avg_system_ram_used_mb": round(avg_ram_total_used, 2)
     }
 
+
+    print("\n✅ Benchmark statistics")
     print(results)
 
     if not os.path.exists(output_dir):
