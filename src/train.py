@@ -25,7 +25,7 @@ def get_peft_model_with_qlora_config(model_name, hf_token, config):
     )
     return get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config)
 
-def get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config):
+def get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config = None):
     peft_config = load_peft_arguments_from_json("configs/peft_lora_configuration.json", config.output_dir)
     model = load_model(model_name, hf_token, bnb_config)
     lora_config = LoraConfig(
@@ -82,11 +82,10 @@ def main():
     # Tokenizer
     tokenizer = get_tokenizer(hf_token, config)
 
-    bnb_config = None
     if args.peft == "qlora":
         peft_model = get_peft_model_with_qlora_config(args.model, hf_token, config)
     elif args.peft == "lora":
-        peft_model = get_peft_model_with_lora_config(args.model, hf_token, config, bnb_config)
+        peft_model = get_peft_model_with_lora_config(args.model, hf_token, config)
     elif args.peft == "ia3":
         peft_model = get_peft_model_with_ia3_config(args.model, hf_token, config)
     elif args.peft == "prefix":
