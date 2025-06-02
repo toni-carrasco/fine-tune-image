@@ -15,14 +15,18 @@ from utils import (
 from callbacks import StepEvalAndEarlyStopCallback
 
 
-def get_peft_model_with_qlora_config(model_name, hf_token, config):
-    peft_config = load_peft_arguments_from_json("configs/peft_qlora_configuration.json", config.output_dir)
+def get_qlora_quantification_config(peft_config):
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=peft_config.pop("load_in_4bit", True),
         bnb_4bit_quant_type=peft_config.pop("bnb_4bit_quant_type", "nf4"),
         bnb_4bit_use_double_quant=peft_config.pop("bnb_4bit_use_double_quant", True),
         bnb_4bit_compute_dtype=torch.float16
     )
+    return bnb_config
+
+def get_peft_model_with_qlora_config(model_name, hf_token, config):
+    peft_config = load_peft_arguments_from_json("configs/peft_qlora_configuration.json", config.output_dir)
+    bnb_config = get_qlora_quantification_config(peft_config)
     return get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config)
 
 def get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config = None):
