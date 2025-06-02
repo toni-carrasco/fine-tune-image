@@ -117,6 +117,7 @@ def get_wikisql_datasets(
     print('\n✅ Loading WikiSQL...')
     raw = load_dataset(
         "Salesforce/wikisql",
+        revision="5de818eb69c5385e763201d9b9abc36df69a81dc",
         token=hf_token,
         trust_remote_code=True
     )
@@ -141,8 +142,8 @@ def get_wikisql_datasets(
             print(f"Train samples: {train_sample_size}")
             print(f"Eval samples:  {eval_sample_size}")
 
-        train_raw = raw["train"].shuffle(seed=42).select(range(train_sample_size))
-        eval_raw  = raw["validation"].shuffle(seed=42).select(range(eval_sample_size))
+        train_raw = raw["train"].select(range(train_sample_size))
+        eval_raw  = raw["validation"].select(range(eval_sample_size))
     else:
         train_raw = raw["train"]
         eval_raw  = raw["validation"]
