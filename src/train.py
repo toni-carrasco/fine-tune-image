@@ -16,7 +16,7 @@ from callbacks import StepEvalAndEarlyStopCallback
 
 
 def get_peft_model_with_qlora_config(model_name, hf_token, config):
-    peft_config = load_peft_arguments_from_json("peft_qlora_configuration.json", config.output_dir)
+    peft_config = load_peft_arguments_from_json("configs/peft_qlora_configuration.json", config.output_dir)
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=peft_config.pop("load_in_4bit", True),
         bnb_4bit_quant_type=peft_config.pop("bnb_4bit_quant_type", "nf4"),
@@ -26,7 +26,7 @@ def get_peft_model_with_qlora_config(model_name, hf_token, config):
     return get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config)
 
 def get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config):
-    peft_config = load_peft_arguments_from_json("peft_lora_configuration.json", config.output_dir)
+    peft_config = load_peft_arguments_from_json("configs/peft_lora_configuration.json", config.output_dir)
     model = load_model(model_name, hf_token, bnb_config)
     lora_config = LoraConfig(
         r=peft_config.pop("r", 4),
@@ -40,7 +40,7 @@ def get_peft_model_with_lora_config(model_name, hf_token, config, bnb_config):
 
 
 def get_peft_model_with_ia3_config(model_name, hf_token, config):
-    peft_config = load_peft_arguments_from_json("peft_ia3_configuration.json", config.output_dir)
+    peft_config = load_peft_arguments_from_json("configs/peft_ia3_configuration.json", config.output_dir)
     model = load_model(model_name, hf_token)
 
     # Detectar si el modelo es tipo GPT-2 (usa 'c_attn')
@@ -60,7 +60,7 @@ def get_peft_model_with_ia3_config(model_name, hf_token, config):
 
 
 def get_peft_model_with_prefix_config(model_name, hf_token, config):
-    peft_config = load_peft_arguments_from_json("peft_prefix_configuration.json", config.output_dir)
+    peft_config = load_peft_arguments_from_json("configs/peft_prefix_configuration.json", config.output_dir)
     model = load_model(model_name, hf_token)
     prefix_config = PrefixTuningConfig(
         num_virtual_tokens=peft_config.pop("num_virtual_tokens", 30),
@@ -77,7 +77,7 @@ def main():
     dataset_size_ratio = env.dataset_size_ratio
     debug_mode = env.debug_mode.lower() in ('1', 'true', 'yes')
 
-    training_config = load_training_arguments_from_json("training_configuration.json", config.output_dir)
+    training_config = load_training_arguments_from_json("configs/training_configuration.json", config.output_dir)
 
     # Tokenizer
     tokenizer = get_tokenizer(hf_token, config)
