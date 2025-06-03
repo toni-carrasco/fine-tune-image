@@ -48,11 +48,11 @@ def get_peft_model_with_ia3_config(model_name, hf_token, config):
     model = load_model(model_name, hf_token)
 
     # Detectar si el modelo es tipo GPT-2 (usa 'c_attn')
-    is_gpt2 = 'c_attn' in target_modules
+    is_gpt2 = 'c_attn' in config.target_modules
 
     # Definir módulos FFN compatibles según target_modules
     candidate_ff_modules = ['mlp', 'fc1', 'gate_proj']
-    feedforward_modules = [m for m in candidate_ff_modules if m in target_modules]
+    feedforward_modules = [m for m in candidate_ff_modules if m in config.target_modules]
 
     ia3_config = IA3Config(
         target_modules=config.target_modules,
