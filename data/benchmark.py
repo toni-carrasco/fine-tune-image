@@ -31,51 +31,90 @@ df["Train Time (h:m:s)"] = df["Train Time (s)"].apply(seconds_to_hms)
 # 1) Gráfico: Train Loss vs Eval Loss
 # -------------------------------------------------------------
 plt.figure(figsize=(8, 5))
-x = df["Técnica"]
-plt.plot(x, df["Train Loss"], marker='o', label="Train Loss")
-plt.plot(x, df["Eval Loss"], marker='s', label="Eval Loss")
+indices = range(len(df))
+bar_width = 0.35
+
+plt.bar(
+    [i - bar_width/2 for i in indices],
+    df["Train Loss"],
+    width=bar_width,
+    label="Train Loss",
+    color="tab:blue"
+)
+
+for i, loss_val in enumerate(df["Train Loss"]):
+    plt.text(
+        i - bar_width/2,
+        loss_val + 0.01,
+        f"{loss_val:.3f}",
+        ha="center",
+        va="bottom",
+        fontsize=8,
+        color="black",
+    )
+
+plt.bar(
+    [i + bar_width/2 for i in indices],
+    df["Eval Loss"],
+    width=bar_width,
+    label="Eval Loss",
+    color="tab:orange"
+)
+
+for i, loss_val in enumerate(df["Eval Loss"]):
+    plt.text(
+        i + bar_width/2,
+        loss_val + 0.01,
+        f"{loss_val:.3f}",
+        ha="center",
+        va="bottom",
+        fontsize=8,
+        color="black",
+    )
+
+plt.xticks(indices, df["Técnica"])
 plt.xlabel("Técnica PEFT")
 plt.ylabel("Loss")
 plt.title("Train Loss vs Eval Loss (GPT-2)")
 plt.legend()
-plt.grid(True, linestyle='--', alpha=0.7)
+plt.grid(axis="y", linestyle="--", alpha=0.7)
 plt.tight_layout()
 plt.show()
 
 fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
 # 2.1) Tiempo de Entrenamiento (subplot 1)
-axes[0].bar(df["Técnica"], df["Train Time (s)"], color='tab:orange')
+axes[0].bar(df["Técnica"], df["Train Time (s)"], color="tab:orange")
 for i, (t, label) in enumerate(zip(df["Train Time (s)"], df["Train Time (h:m:s)"])):
     axes[0].text(
         i,
         t + max(df["Train Time (s)"]) * 0.01,
         label,
-        ha='center',
-        va='bottom',
-        fontsize=8
+        ha="center",
+        va="bottom",
+        fontsize=8,
     )
 axes[0].set_xlabel("Técnica PEFT")
 axes[0].set_ylabel("Tiempo de Entrenamiento (s)")
 axes[0].set_title("Tiempo de Entrenamiento (GPT-2)")
-axes[0].grid(axis='y', linestyle='--', alpha=0.7)
+axes[0].grid(axis="y", linestyle="--", alpha=0.7)
 
 # 2.2) Utilización de GPU y CPU (subplot 2)
 indices = range(len(df))
 bar_width = 0.35
 axes[1].bar(
-    [i - bar_width/2 for i in indices],
+    [i - bar_width / 2 for i in indices],
     df["GPU Util (%)"],
     width=bar_width,
     label="GPU Util (%)",
-    color='tab:green'
+    color="tab:green",
 )
 axes[1].bar(
-    [i + bar_width/2 for i in indices],
+    [i + bar_width / 2 for i in indices],
     df["CPU Util (%)"],
     width=bar_width,
     label="CPU Util (%)",
-    color='tab:purple'
+    color="tab:purple",
 )
 axes[1].set_xticks(indices)
 axes[1].set_xticklabels(df["Técnica"])
@@ -83,43 +122,43 @@ axes[1].set_xlabel("Técnica PEFT")
 axes[1].set_ylabel("Utilización (%)")
 axes[1].set_title("Utilización de GPU y CPU (GPT-2)")
 axes[1].legend()
-axes[1].grid(axis='y', linestyle='--', alpha=0.7)
+axes[1].grid(axis="y", linestyle="--", alpha=0.7)
 
 for i in indices:
     gpu_val = df.loc[i, "GPU Util (%)"]
     cpu_val = df.loc[i, "CPU Util (%)"]
     axes[1].text(
-        i - bar_width/2,
+        i - bar_width / 2,
         gpu_val + 1,
         f"{gpu_val:.1f}%",
-        ha='center',
-        va='bottom',
-        fontsize=8
+        ha="center",
+        va="bottom",
+        fontsize=8,
     )
     axes[1].text(
-        i + bar_width/2,
+        i + bar_width / 2,
         cpu_val + 1,
         f"{cpu_val:.1f}%",
-        ha='center',
-        va='bottom',
-        fontsize=8
+        ha="center",
+        va="bottom",
+        fontsize=8,
     )
 
 # 2.3) Uso de RAM (subplot 3)
-axes[2].bar(df["Técnica"], df["RAM Used (MB)"], color='tab:blue')
+axes[2].bar(df["Técnica"], df["RAM Used (MB)"], color="tab:blue")
 for i, ram in enumerate(df["RAM Used (MB)"]):
     axes[2].text(
         i,
         ram + max(df["RAM Used (MB)"]) * 0.01,
         f"{int(ram):,}",
-        ha='center',
-        va='bottom',
-        fontsize=8
+        ha="center",
+        va="bottom",
+        fontsize=8,
     )
 axes[2].set_xlabel("Técnica PEFT")
 axes[2].set_ylabel("RAM Utilizada (MB)")
 axes[2].set_title("Uso de RAM (GPT-2)")
-axes[2].grid(axis='y', linestyle='--', alpha=0.7)
+axes[2].grid(axis="y", linestyle="--", alpha=0.7)
 
 plt.tight_layout()
 plt.show()
