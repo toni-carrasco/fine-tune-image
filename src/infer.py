@@ -54,7 +54,6 @@ def test_prompt(input_prompt, expected_output, tokenizer, peft_model, device):
     return elapsed_time, match
 
 def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
-    # Dataset
     train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio)
     prompts = eval_dataset["input_ids"]
     sqls = eval_dataset["labels"]
@@ -62,19 +61,28 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
     total_time = 0.0
     match_count = 0
     mismatch_count = 0
+    total_steps = len(prompts)
+    print(f"== Starting inference process for evaluation dataset ==\n"
+          f"   Total samples to be evaluated: {total_steps}.\n"
+          f"   Please wait while the model processes the data.")
 
     for i, (p, s) in enumerate(zip(prompts, sqls), 1):
         elapsed, match = test_prompt(p, s, tokenizer, peft_model, device)
         total_time += elapsed
+
         if match:
             match_count += 1
         else:
             mismatch_count += 1
 
-    print("=== Resultados globales ===")
-    print(f"Total inference time: {total_time:.2f} seconds")
-    print(f"Matches:   {match_count}")
-    print(f"Mismatches:{mismatch_count}")
+        progress = (i / total_steps) * 100
+        if progress % 5 == 0:
+            print(f"   Progress: {progress:6.0f}%    Matches: {match_count:>{15}}    Mismatches: {mismatch_count:>{15}}")
+
+    print("== Global Results ==")
+    print(f"  Total inference time: {total_time:.2f} seconds")
+    print(f"  Matches:   {match_count}")
+    print(f"  Mismatches: {mismatch_count}")
 
 
 def main():
