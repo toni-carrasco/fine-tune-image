@@ -20,7 +20,7 @@ def infer(combined_prompt, tokenizer, peft_model, device):
         return_tensors="pt",
         padding=True,
         truncation=True,
-        max_length=512 # TODO: Aixo esta definit com a constant?
+        max_length=512 # TODO: Aixo esta definit com a constant? FULL_MAX?
     ).to(device)
 
     outputs = peft_model.generate(
@@ -66,6 +66,10 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
     for i, (p, s) in enumerate(zip(prompts, sqls), 1):
         elapsed, match = test_prompt(p, s, tokenizer, peft_model, device)
         total_time += elapsed
+        if match:
+            match_count += 1
+        else:
+            mismatch_count += 1
 
     print("=== Resultados globales ===")
     print(f"Total inference time: {total_time:.2f} seconds")
