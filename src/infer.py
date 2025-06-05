@@ -56,8 +56,8 @@ def test_prompt(input_prompt, expected_output, tokenizer, peft_model, device):
 def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
     # Dataset
     train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio)
-    prompts = train_dataset["input_ids"]
-    sqls = train_dataset["labels"]
+    prompts = eval_dataset["input_ids"]
+    sqls = eval_dataset["labels"]
 
     total_time = 0.0
     match_count = 0
