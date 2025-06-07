@@ -67,6 +67,10 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
           f"   Please wait while the model processes the data.")
 
     for i, (p, s) in enumerate(zip(prompts, sqls), 1):
+
+        print(p)
+        print(s)
+
         elapsed, match = test_prompt(p, s, tokenizer, peft_model, device)
         total_time += elapsed
 
