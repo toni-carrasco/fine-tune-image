@@ -48,6 +48,9 @@ def test_prompt(input_prompt, expected_output, tokenizer, peft_model, device):
 
 def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
     train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio)
+
+    print(eval_dataset[0])
+
     prompts = eval_dataset["input_ids"]
     sqls = eval_dataset["labels"]
 
