@@ -109,6 +109,7 @@ def main():
 
         columns = input("Columns (comma‐separated) >> ")
         columns = ", ".join([col.strip() for col in columns.split(",") if col.strip()])
+
         combined_prompt = f"Question: {question}\nColumns: {columns}\nSQL:"
 
         inputs = tokenizer(
@@ -116,10 +117,10 @@ def main():
             return_tensors="pt",
             padding=True,
             truncation=True,
-            max_length=512 # TODO: Aixo esta definit com a constant? FULL_MAX?
+            max_length=512
         ).to(device)
 
-        inferred_output = infer(combined_prompt, tokenizer, peft_model, device)
+        inferred_output = infer(inputs, tokenizer, peft_model, device)
         print(inferred_output)
 
 if __name__ == '__main__':
