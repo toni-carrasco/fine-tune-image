@@ -14,6 +14,9 @@ def outputs_match(expected, inferred):
 
 
 def infer(inputs, tokenizer, peft_model, device):
+
+    print(inputs)
+
     outputs = peft_model.generate(
         **inputs,
         max_new_tokens=100,
