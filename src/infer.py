@@ -56,7 +56,7 @@ def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device)
     return elapsed_time, match
 
 def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
-    train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio)
+    train_dataset, eval_dataset = get_wikisql_datasets(None, hf_token, dataset_size_ratio)
 
     prompts = eval_dataset["input_ids"]
     sqls = eval_dataset["labels"]
