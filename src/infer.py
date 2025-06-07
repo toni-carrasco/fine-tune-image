@@ -66,6 +66,8 @@ def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device)
     print(expected_output)
     print(inferred_output)
     match = outputs_match(expected_output, inferred_output)
+    print(match)
+    print("===")
 
     return elapsed_time, match
 
