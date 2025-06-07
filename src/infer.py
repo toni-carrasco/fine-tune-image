@@ -22,11 +22,6 @@ def outputs_match(expected, inferred):
     inferred_sql = extract_sql(inferred)
     match = normalize(expected) == normalize(inferred_sql)
 
-#    if not match:
-#        print("== fail")
-#        print(f"expected: {expected}")
-#        print(f"inferred: {inferred_sql}")
-
     return match
 
 
@@ -70,16 +65,15 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
     match_count = 0
     mismatch_count = 0
     total_steps = len(prompts)
+    last_printed_percent = -1
+
     print(f"== Starting inference process for evaluation dataset ==\n"
           f"   Total samples to be evaluated: {total_steps}.\n"
           f"   Please wait while the model processes the data.")
 
-    last_printed_percent = -1
     for i, (p, s) in enumerate(zip(prompts, sqls), 1):
-
         elapsed, match = test_prompt(p, s, tokenizer, peft_model, device)
         total_time += elapsed
-
         if match:
             match_count += 1
         else:
