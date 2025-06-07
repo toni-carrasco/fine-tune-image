@@ -149,15 +149,15 @@ def get_wikisql_datasets(
         eval_raw  = raw["validation"]
 
     # Aplica map con la función de pre procesamiento
-    train_dataset = train_raw.map(
-        lambda batch: _preprocess_wikisql(tokenizer, batch),
-        batched=True,
-        remove_columns=train_raw.column_names
-    )
-    eval_dataset = eval_raw.map(
-        lambda batch: _preprocess_wikisql(tokenizer, batch),
-        batched=True,
-        remove_columns=eval_raw.column_names
-    )
+    #train_dataset = train_raw.map(
+    #    lambda batch: _preprocess_wikisql(tokenizer, batch),
+    #    batched=True,
+    #    remove_columns=train_raw.column_names
+    #)
+    #eval_dataset = eval_raw.map(
+    #    lambda batch: _preprocess_wikisql(tokenizer, batch),
+    #    batched=True,
+    #    remove_columns=eval_raw.column_names
+    #)
 
     return train_dataset, eval_dataset
