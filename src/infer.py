@@ -24,10 +24,7 @@ def outputs_match(expected, inferred):
 
     if not match:
         print("== fail")
-        print(f"prompt: {combined_prompt}")
-        print(f"expected: {expected_output}")
-        print(f"inferred: {inferred_sql}")
-    else:
+        print(f"expected: {expected}")
         print(f"inferred: {inferred_sql}")
 
     return match
