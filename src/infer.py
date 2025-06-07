@@ -22,10 +22,10 @@ def outputs_match(expected, inferred):
     inferred_sql = extract_sql(inferred)
     match = normalize(expected) == normalize(inferred_sql)
 
-    if not match:
-        print("== fail")
-        print(f"expected: {expected}")
-        print(f"inferred: {inferred_sql}")
+#    if not match:
+#        print("== fail")
+#        print(f"expected: {expected}")
+#        print(f"inferred: {inferred_sql}")
 
     return match
 
