@@ -63,6 +63,8 @@ def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device)
     end_time = time.time()
 
     elapsed_time = end_time - start_time
+    print(expected_output)
+    print(inferred_output)
     match = outputs_match(expected_output, inferred_output)
 
     return elapsed_time, match
