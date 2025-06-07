@@ -13,18 +13,7 @@ def outputs_match(expected, inferred):
     return normalize(expected) == normalize(inferred)
 
 
-def infer(combined_prompt, tokenizer, peft_model, device):
-
-    '''
-    inputs = tokenizer(
-        combined_prompt,
-        return_tensors="pt",
-        padding=True,
-        truncation=True,
-        max_length=512 # TODO: Aixo esta definit com a constant? FULL_MAX?
-    ).to(device)
-    '''
-
+def infer(inputs, tokenizer, peft_model, device):
     outputs = peft_model.generate(
         **inputs,
         max_new_tokens=100,
@@ -34,7 +23,6 @@ def infer(combined_prompt, tokenizer, peft_model, device):
         do_sample=True,
         pad_token_id=tokenizer.eos_token_id
     )
-
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 
@@ -122,6 +110,14 @@ def main():
         columns = input("Columns (comma‐separated) >> ")
         columns = ", ".join([col.strip() for col in columns.split(",") if col.strip()])
         combined_prompt = f"Question: {question}\nColumns: {columns}\nSQL:"
+
+        inputs = tokenizer(
+            combined_prompt,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512 # TODO: Aixo esta definit com a constant? FULL_MAX?
+        ).to(device)
 
         inferred_output = infer(combined_prompt, tokenizer, peft_model, device)
         print(inferred_output)
