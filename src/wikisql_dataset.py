@@ -114,8 +114,6 @@ def _print_dataset_examples(dataset, split: str = "train", n: int = 5):
         print(f"columns:            {columns}")
         print(f"question:           {question}")
         print(f"human_readable_sql: {hr_sql}")
-        print("-" * 10)
-        print(ex)
         print("-" * 80)
 
 def get_wikisql_datasets(
