@@ -44,7 +44,7 @@ def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device)
 
     if not match:
         print("== fail")
-        print(f"prompt: {input_prompt}")
+        print(f"prompt: {combined_prompt}")
         print(f"expected: {expected_output}")
         print(f"inferred: {inferred_output}")
 
