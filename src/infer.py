@@ -87,8 +87,7 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
         progress = (i / total_steps) * 100
 
         print(f"{elapsed} - {match} - {progress}")
-
-        if progress % 5 == 0:
+        if int(progress) % 5 == 0:
             print(f"   Progress: {progress:6.0f}%    Matches: {match_count:>{15}}    Mismatches: {mismatch_count:>{15}}")
 
     print("== Global Results ==")
