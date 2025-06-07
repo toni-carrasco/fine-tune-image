@@ -19,10 +19,7 @@ def get_tokenizer(hf_token, config):
 
     return tokenizer
 
-def _preprocess_wikisql2(
-        tokenizer: PreTrainedTokenizerBase,
-        batch: dict
-) -> dict:
+def _preprocess_wikisql_without_tokenizer(batch: dict) -> dict:
     questions = batch["question"]
     columns   = [", ".join(tbl["header"]) for tbl in batch["table"]]
     sqls      = [entry["human_readable"] for entry in batch["sql"]]
@@ -170,12 +167,12 @@ def get_wikisql_datasets(
 
     # Aplica map con la función de pre procesamiento
     train_dataset = train_raw.map(
-        lambda batch: _preprocess_wikisql2(tokenizer, batch),
+        lambda batch: _preprocess_wikisql_without_tokenizer(batch),
         batched=True,
         remove_columns=train_raw.column_names
     )
     eval_dataset = eval_raw.map(
-        lambda batch: _preprocess_wikisql2(tokenizer, batch),
+        lambda batch: _preprocess_wikisql_without_tokenizer(batch),
         batched=True,
         remove_columns=eval_raw.column_names
     )
