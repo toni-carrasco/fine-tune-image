@@ -172,7 +172,7 @@ def get_wikisql_datasets(
         preprocess_fn = lambda batch: _preprocess_wikisql(tokenizer, batch)
 
     train_dataset = train_raw.map(
-        lpreprocess_fn,
+        preprocess_fn,
         batched=True,
         remove_columns=train_raw.column_names
     )
