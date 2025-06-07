@@ -13,7 +13,15 @@ def outputs_match(expected, inferred):
     return normalize(expected) == normalize(inferred)
 
 
-def infer(inputs, tokenizer, peft_model, device):
+def infer(combined_prompt, tokenizer, peft_model, device):
+    inputs = tokenizer(
+        combined_prompt,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+        max_length=512
+    ).to(device)
+
     outputs = peft_model.generate(
         **inputs,
         max_new_tokens=100,
@@ -26,15 +34,9 @@ def infer(inputs, tokenizer, peft_model, device):
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 
-def test_prompt(input_prompt, expected_output, tokenizer, peft_model, device):
-
-    print("==")
-    print(input_prompt)
-    print(expected_output)
-    print("==")
-
+def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device):
     start_time = time.time()
-    inferred_output = infer(input_prompt, tokenizer, peft_model, device)
+    inferred_output = infer(combined_prompt, tokenizer, peft_model, device)
     end_time = time.time()
 
     elapsed_time = end_time - start_time
@@ -115,15 +117,7 @@ def main():
 
         combined_prompt = f"Question: {question}\nColumns: {columns}\nSQL:"
 
-        inputs = tokenizer(
-            combined_prompt,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=512
-        ).to(device)
-
-        inferred_output = infer(inputs, tokenizer, peft_model, device)
+        inferred_output = infer(combined_prompt, tokenizer, peft_model, device)
         print(inferred_output)
 
 if __name__ == '__main__':
