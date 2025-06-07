@@ -32,10 +32,11 @@ def _preprocess_wikisql2(
         prompt = f"Question: {q}\nColumns: {cols}\nSQL:"
         prompts.append(prompt)
 
+    output = {}
     output["input_ids"] = prompts
     output["labels"] = sqls
 
-    return outputs
+    return output
 
 
 def _preprocess_wikisql(
