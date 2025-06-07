@@ -82,7 +82,7 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
         progress = (i / total_steps) * 100
         current_percent = int(progress)
         if current_percent % 5 == 0 and current_percent != last_printed_percent:
-            print(f"   Progress: {progress:6.0f}%    Matches: {match_count:>{15}}    Mismatches: {mismatch_count:>{15}}")
+            print(f"   Progress: {progress:6.0f}% ({i:>{15})    Matches: {match_count:>{15}}    Mismatches: {mismatch_count:>{15}}    inference time: {total_time:.2f}")
             last_printed_percent = current_percent
 
     print("== Global Results ==")
