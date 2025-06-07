@@ -77,6 +77,7 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
     for i, (p, s) in enumerate(zip(prompts, sqls), 1):
 
         elapsed, match = test_prompt(p, s, tokenizer, peft_model, device)
+        print(f"{elapsed} - {match}")
         total_time += elapsed
 
         if match:
