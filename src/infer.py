@@ -15,6 +15,7 @@ def outputs_match(expected, inferred):
 
 def infer(combined_prompt, tokenizer, peft_model, device):
 
+    '''
     inputs = tokenizer(
         combined_prompt,
         return_tensors="pt",
@@ -22,6 +23,7 @@ def infer(combined_prompt, tokenizer, peft_model, device):
         truncation=True,
         max_length=512 # TODO: Aixo esta definit com a constant? FULL_MAX?
     ).to(device)
+    '''
 
     outputs = peft_model.generate(
         **inputs,
