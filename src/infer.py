@@ -25,6 +25,8 @@ def outputs_match(expected, inferred):
         print(f"prompt: {combined_prompt}")
         print(f"expected: {expected_output}")
         print(f"inferred: {inferred_sql}")
+    else:
+        print(f"inferred: {inferred_sql}")
 
     return match
 
