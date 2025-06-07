@@ -16,7 +16,17 @@ def outputs_match(expected, inferred):
     return ""
     def normalize(text):
         return " ".join(text.lower().split())
-    return normalize(expected) == normalize(extract_sql(inferred))
+
+    inferred_sql = extract_sql(inferred)
+    match = normalize(expected) == normalize(inferred_sql)
+
+    if not match:
+        print("== fail")
+        print(f"prompt: {combined_prompt}")
+        print(f"expected: {expected_output}")
+        print(f"inferred: {inferred_sql}")
+
+    return match
 
 
 def infer(combined_prompt, tokenizer, peft_model, device):
@@ -47,12 +57,6 @@ def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device)
 
     elapsed_time = end_time - start_time
     match = outputs_match(expected_output, inferred_output)
-
-    if not match:
-        print("== fail")
-        print(f"prompt: {combined_prompt}")
-        print(f"expected: {expected_output}")
-        print(f"inferred: {inferred_output}")
 
     return elapsed_time, match
 
