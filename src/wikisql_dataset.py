@@ -160,4 +160,4 @@ def get_wikisql_datasets(
     #    remove_columns=eval_raw.column_names
     #)
 
-    return train_dataset, eval_dataset
+    return train_raw, eval_raw
