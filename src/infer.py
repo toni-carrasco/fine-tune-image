@@ -14,9 +14,6 @@ def outputs_match(expected, inferred):
 
 
 def infer(inputs, tokenizer, peft_model, device):
-
-    print(inputs)
-
     outputs = peft_model.generate(
         **inputs,
         max_new_tokens=100,
@@ -30,6 +27,11 @@ def infer(inputs, tokenizer, peft_model, device):
 
 
 def test_prompt(input_prompt, expected_output, tokenizer, peft_model, device):
+
+    print("==")
+    print(input_prompt)
+    print(expected_output)
+    print("==")
 
     start_time = time.time()
     inferred_output = infer(input_prompt, tokenizer, peft_model, device)
@@ -49,8 +51,6 @@ def test_prompt(input_prompt, expected_output, tokenizer, peft_model, device):
 def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
     train_dataset, eval_dataset = get_wikisql_datasets(tokenizer, hf_token, dataset_size_ratio)
 
-    print(eval_dataset[0])
-
     prompts = eval_dataset["input_ids"]
     sqls = eval_dataset["labels"]
 
@@ -63,9 +63,6 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
           f"   Please wait while the model processes the data.")
 
     for i, (p, s) in enumerate(zip(prompts, sqls), 1):
-
-        print(p)
-        print(s)
 
         elapsed, match = test_prompt(p, s, tokenizer, peft_model, device)
         total_time += elapsed
