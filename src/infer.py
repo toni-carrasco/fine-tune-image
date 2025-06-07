@@ -14,15 +14,12 @@ def outputs_match(expected, inferred):
         for line in parts:
             if line.startswith("SQL:"):
                 return line[4:].strip()
-    return ""
+        return ""
 
     def normalize(text):
         return " ".join(text.lower().split())
 
     inferred_sql = extract_sql(inferred)
-    print("===")
-    print(expected)
-    print(inferred_sql)
     match = normalize(expected) == normalize(inferred_sql)
 
     if not match:
@@ -63,12 +60,7 @@ def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device)
     end_time = time.time()
 
     elapsed_time = end_time - start_time
-    print(expected_output)
-    print(inferred_output)
     match = outputs_match(expected_output, inferred_output)
-    print(match)
-    print("===")
-
     return elapsed_time, match
 
 def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
