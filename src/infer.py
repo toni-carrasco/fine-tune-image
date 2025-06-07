@@ -74,6 +74,7 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
           f"   Total samples to be evaluated: {total_steps}.\n"
           f"   Please wait while the model processes the data.")
 
+    last_printed_percent = -1
     for i, (p, s) in enumerate(zip(prompts, sqls), 1):
 
         elapsed, match = test_prompt(p, s, tokenizer, peft_model, device)
@@ -85,10 +86,10 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
             mismatch_count += 1
 
         progress = (i / total_steps) * 100
-
-        print(f"{elapsed} - {match} - {progress}")
-        if int(progress) % 5 == 0:
+        current_percent = int(progress)
+        if current_percent % 5 == 0 and current_percent != last_printed_percent:
             print(f"   Progress: {progress:6.0f}%    Matches: {match_count:>{15}}    Mismatches: {mismatch_count:>{15}}")
+            last_printed_percent = current_percent
 
     print("== Global Results ==")
     print(f"  Total inference time: {total_time:.2f} seconds")
