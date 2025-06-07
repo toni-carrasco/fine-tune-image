@@ -8,16 +8,21 @@ from train import get_qlora_quantification_config
 
 
 def outputs_match(expected, inferred):
+
     def extract_sql(text: str) -> str:
         parts = text.split("\n")
         for line in parts:
             if line.startswith("SQL:"):
                 return line[4:].strip()
     return ""
+
     def normalize(text):
         return " ".join(text.lower().split())
 
     inferred_sql = extract_sql(inferred)
+    print("===")
+    print(expected)
+    print(inferred_sql)
     match = normalize(expected) == normalize(inferred_sql)
 
     if not match:
