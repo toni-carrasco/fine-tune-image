@@ -8,9 +8,15 @@ from train import get_qlora_quantification_config
 
 
 def outputs_match(expected, inferred):
+    def extract_sql(text: str) -> str:
+        parts = text.split("\n")
+        for line in parts:
+            if line.startswith("SQL:"):
+                return line[4:].strip()
+    return ""
     def normalize(text):
         return " ".join(text.lower().split())
-    return normalize(expected) == normalize(inferred)
+    return normalize(expected) == normalize(extract_sql(inferred))
 
 
 def infer(combined_prompt, tokenizer, peft_model, device):
