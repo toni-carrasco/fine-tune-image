@@ -77,7 +77,6 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
     for i, (p, s) in enumerate(zip(prompts, sqls), 1):
 
         elapsed, match = test_prompt(p, s, tokenizer, peft_model, device)
-        print(f"{elapsed} - {match}")
         total_time += elapsed
 
         if match:
@@ -86,6 +85,9 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
             mismatch_count += 1
 
         progress = (i / total_steps) * 100
+
+        print(f"{elapsed} - {match} - {progress}")
+
         if progress % 5 == 0:
             print(f"   Progress: {progress:6.0f}%    Matches: {match_count:>{15}}    Mismatches: {mismatch_count:>{15}}")
 
