@@ -56,9 +56,8 @@ def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device,
 
     if not match:
         log_msg = (
-            f"Prompt:\n{combined_prompt}\n"
-            f"Expected:\n{expected_output}\n"
             f"Generated:\n{inferred_output}\n"
+            f"Expected:\nSQL: {expected_output}\n"
             f"{'-'*40}"
         )
         if logf:
