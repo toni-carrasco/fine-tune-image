@@ -46,17 +46,28 @@ def infer(combined_prompt, tokenizer, peft_model, device):
     return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 
-def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device):
+def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device, logf):
     start_time = time.time()
     inferred_output = infer(combined_prompt, tokenizer, peft_model, device)
     end_time = time.time()
 
     elapsed_time = end_time - start_time
     match = outputs_match(expected_output, inferred_output)
+
+    if not match:
+        log_msg = (
+            f"Prompt:\n{combined_prompt}\n"
+            f"Expected:\n{expected_output}\n"
+            f"Generated:\n{inferred_output}\n"
+            f"{'-'*40}"
+        )
+        if logf:
+            logf.write(log_msg + "\n")
+
     return elapsed_time, match
 
 
-def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
+def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio, output_dir):
     train_dataset, eval_dataset = get_wikisql_datasets(None, hf_token, dataset_size_ratio)
 
     prompts = eval_dataset["input_ids"]
@@ -72,19 +83,20 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio):
           f"   Total samples to be evaluated: {total_steps}.\n"
           f"   Please wait while the model processes the data.")
 
-    for i, (p, s) in enumerate(zip(prompts, sqls), 1):
-        elapsed, match = test_prompt(p, s, tokenizer, peft_model, device)
-        total_time += elapsed
-        if match:
-            match_count += 1
-        else:
-            mismatch_count += 1
+    with open(f"{output_dir}/mismatches.log", "w", encoding="utf-8") as logf:
+        for i, (p, s) in enumerate(zip(prompts, sqls), 1):
+            elapsed, match = test_prompt(p, s, tokenizer, peft_model, device, logf)
+            total_time += elapsed
+            if match:
+                match_count += 1
+            else:
+                mismatch_count += 1
 
-        progress = (i / total_steps) * 100
-        current_percent = int(progress)
-        if current_percent % 5 == 0 and current_percent != last_printed_percent:
-            print(f"   Progress: {progress:6.0f}% ({i:>{15}})    Matches: {match_count:>{15}}    Mismatches: {mismatch_count:>{15}}    inference time: {total_time:.2f}")
-            last_printed_percent = current_percent
+            progress = (i / total_steps) * 100
+            current_percent = int(progress)
+            if current_percent % 5 == 0 and current_percent != last_printed_percent:
+                print(f"   Progress: {progress:6.0f}% ({i:>{15}})    Matches: {match_count:>{15}}    Mismatches: {mismatch_count:>{15}}    inference time: {total_time:.2f}")
+                last_printed_percent = current_percent
 
     print("== Global Results ==")
     print(f"  Total inference time: {total_time:.2f} seconds")
@@ -117,7 +129,7 @@ def main():
         if question.strip() == "/quit":
             break
         elif question == "/test":
-            perform_test(tokenizer, peft_model, device, env.hf_token, env.dataset_size_ratio)
+            perform_test(tokenizer, peft_model, device, env.hf_token, env.dataset_size_ratio, config.output_dir)
             break
 
         columns = input("Columns (comma‐separated) >> ")
