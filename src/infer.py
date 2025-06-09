@@ -105,10 +105,15 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio, ou
     sqls = eval_dataset["labels"]
 
     total_time = 0.0
-    match_count = 0
-    mismatch_count = 0
     total_steps = len(prompts)
     last_printed_percent = -1
+    result_counters = {
+        "Match": 0,
+        "Projection mismatch": 0,
+        "Filter mismatch": 0,
+        "Both projection and filter mismatch": 0,
+        "Invalid SQL format": 0
+    }
 
     print(f"== Starting inference process for evaluation dataset ==\n"
           f"   Total samples to be evaluated: {total_steps}.\n"
@@ -118,21 +123,27 @@ def perform_test(tokenizer, peft_model, device, hf_token, dataset_size_ratio, ou
         for i, (p, s) in enumerate(zip(prompts, sqls), 1):
             elapsed, match = test_prompt(p, s, tokenizer, peft_model, device, logf)
             total_time += elapsed
-            if match:
-                match_count += 1
+
+            if match not in result_counters:
+                result_counters["Invalid SQL format"] += 1
             else:
-                mismatch_count += 1
+                result_counters[match] += 1
 
             progress = (i / total_steps) * 100
             current_percent = int(progress)
             if current_percent % 5 == 0 and current_percent != last_printed_percent:
-                print(f"   Progress: {progress:6.0f}% ({i:>{15}})    Matches: {match_count:>{15}}    Mismatches: {mismatch_count:>{15}}    inference time: {total_time:.2f}")
+                print(
+                    f"   Progress: {progress:6.0f}% ({i:>{15}})    "
+                    f"Matches: {result_counters['Match']:>{15}}    "
+                    f"Mismatches: {sum(v for k, v in result_counters.items() if k != 'Match'):>{15}}    "
+                    f"inference time: {total_time:.2f}"
+                )
                 last_printed_percent = current_percent
 
     print("== Global Results ==")
-    print(f"  Total inference time: {total_time:.2f} seconds")
-    print(f"  Matches:   {match_count}")
-    print(f"  Mismatches: {mismatch_count}")
+    print(f"  Total inference time: {total_time:.2f} seconds\n")
+    for category, count in result_counters.items():
+        print(f"  {category:<40}: {count}")
 
 
 def main():
