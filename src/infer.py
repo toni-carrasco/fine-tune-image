@@ -1,5 +1,6 @@
 import torch
 import time
+import re
 from transformers import AutoTokenizer
 from peft import PeftModel
 from utils import parse_args, load_env_vars, get_model_config, load_model, load_peft_arguments_from_json
@@ -8,6 +9,8 @@ from train import get_qlora_quantification_config
 
 
 def outputs_match(expected, inferred):
+    def normalize_sql(sql):
+        return re.sub(r'\s+', ' ', sql.strip().lower())
 
     def extract_sql(text: str) -> str:
         parts = text.split("\n")
@@ -16,11 +19,39 @@ def outputs_match(expected, inferred):
                 return line[4:].strip()
         return ""
 
-    def normalize(text):
-        return " ".join(text.lower().split())
+    def extract_sql_parts(sql):
+        pattern = re.compile(r"select (.+?) from .+? where (.+)", re.IGNORECASE)
+        match = pattern.search(sql)
+        if not match:
+            return None, None
+        projection = match.group(1).strip()
+        where_clause = match.group(2).strip()
+        return projection, where_clause
+
+    def compare_sql_statements(sql1, sql2):
+        norm_sql1 = normalize_sql(sql1)
+        norm_sql2 = normalize_sql(sql2)
+
+        proj1, where1 = extract_sql_parts(norm_sql1)
+        proj2, where2 = extract_sql_parts(norm_sql2)
+
+        if proj1 is None or where1 is None or proj2 is None or where2 is None:
+            return "Invalid SQL format"
+
+        proj_match = proj1 == proj2
+        where_match = where1 == where2
+
+        if proj_match and where_match:
+            return "Match"
+        elif not proj_match and where_match:
+            return "Projection mismatch"
+        elif proj_match and not where_match:
+            return "Filter mismatch"
+        else:
+            return "Both projection and filter mismatch"
 
     inferred_sql = extract_sql(inferred)
-    match = normalize(expected) == normalize(inferred_sql)
+    match = compare_sql_statements(inferred_sql, expected)
 
     return match
 
@@ -54,8 +85,9 @@ def test_prompt(combined_prompt, expected_output, tokenizer, peft_model, device,
     elapsed_time = end_time - start_time
     match = outputs_match(expected_output, inferred_output)
 
-    if not match:
+    if match != "Match":
         log_msg = (
+            f"[{match}]\n"
             f"Generated:\n{inferred_output}\n"
             f"Expected:\nSQL: {expected_output}\n"
             f"{'-'*40}"
